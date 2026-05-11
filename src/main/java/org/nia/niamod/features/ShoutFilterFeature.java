@@ -1,5 +1,8 @@
 package org.nia.niamod.features;
 
+import com.wynntils.core.text.StyledText;
+import com.wynntils.handlers.chat.type.RecipientType;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.GuiMessage;
 import net.minecraft.client.GuiMessageTag;
 import net.minecraft.client.Minecraft;
@@ -18,25 +21,23 @@ import org.nia.niamod.models.misc.Feature;
 import org.nia.niamod.models.misc.Safe;
 
 import java.util.List;
-import java.util.regex.Pattern;
+import java.util.Optional;
 
 @SuppressWarnings("unused")
 public class ShoutFilterFeature extends Feature {
-    private Pattern shout;
+    private static final TextColor GRAY_OUT_COLOR = TextColor.fromRgb(0x676767);
 
     @Override
     @Safe
     public void init() {
         NiaEventBus.subscribe(this);
-        shout = Pattern.compile("((\\uDAFF\\uDFFC\\uE015\\uDAFF\\uDFFF\\uE002\\uDAFF\\uDFFE)|(\\uDAFF\\uDFFC\\uE001\\uDB00\\uDC06)) .* .+? shouts: .+");
     }
 
     @Subscribe
     public void modifyChat(ChatModifyEvent event) {
         Component component = event.getMessage();
         if (!NyahConfig.getData().isShoutFilterFeatureEnabled()) return;
-
-        if (!shout.matcher(component.getString()).matches()) return;
+        if (!RecipientType.SHOUT.matchPattern(StyledText.fromComponent(component))) return;
 
         if (NyahConfig.getData().getShoutFilterMode() == ShoutReplacement.REMOVE) {
             event.setMessage(null);
@@ -65,16 +66,54 @@ public class ShoutFilterFeature extends Feature {
         }
     }
 
-    private Component withColor(Component component) {
-        MutableComponent copy = component.plainCopy();
 
-        copy.setStyle(component.getStyle().withColor(TextColor.fromRgb(0x676767)));
+    public static MutableComponent withColor(Component component) {
+        MutableComponent copy = Component.empty();
+        component.visit((style, string) -> {
+            copy.append(Component.literal(legacyCode(string)).withStyle(style.withColor(GRAY_OUT_COLOR)));
+            return Optional.empty();
+        }, Style.EMPTY);
+        return copy;
+    }
 
-        for (Component sibling : component.getSiblings()) {
-            copy.append(withColor(sibling));
+    private static String legacyCode(String string) {
+        StringBuilder builder = null;
+        int lastCopied = 0;
+
+        for (int i = 0; i < string.length(); i++) {
+            if (string.charAt(i) != ChatFormatting.PREFIX_CODE || i + 1 >= string.length()) continue;
+
+            int hexSequenceLength = leglen(string, i);
+            if (hexSequenceLength > 0) {
+                if (builder == null) builder = new StringBuilder(string.length());
+                builder.append(string, lastCopied, i).append(ChatFormatting.RESET);
+                i += hexSequenceLength - 1;
+                lastCopied = i + 1;
+                continue;
+            }
+
+            ChatFormatting formatting = ChatFormatting.getByCode(string.charAt(i + 1));
+            if (formatting != null && formatting.isColor()) {
+                if (builder == null) builder = new StringBuilder(string.length());
+                builder.append(string, lastCopied, i).append(ChatFormatting.RESET);
+                i++;
+                lastCopied = i + 1;
+            }
         }
 
-        return copy;
+        return builder == null ? string : builder.append(string, lastCopied, string.length()).toString();
+    }
+
+    private static int leglen(String string, int start) {
+        if (start + 13 >= string.length() || Character.toLowerCase(string.charAt(start + 1)) != 'x') return 0;
+
+        for (int i = start + 2; i <= start + 12; i += 2) {
+            if (string.charAt(i) != ChatFormatting.PREFIX_CODE || Character.digit(string.charAt(i + 1), 16) == -1) {
+                return 0;
+            }
+        }
+
+        return 14;
     }
 
 }
