@@ -11,11 +11,7 @@ import org.nia.niamod.models.misc.Feature;
 import org.nia.niamod.models.misc.Safe;
 import org.nia.niamod.util.TerritoryUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class DefenseEstimatesFeature extends Feature {
 
@@ -45,7 +41,7 @@ public class DefenseEstimatesFeature extends Feature {
     private static EmeraldProdUpgrade getMostLikelyEmProdUpgrade(String territoryName, TerritoryInfo territoryInfo) {
         double treasuryBonus = TerritoryUtils.getTreasuryBonus(territoryName);
         double modifier = TerritoryUtils.getProductionModifier(territoryName, GuildResource.EMERALDS);
-        modifier = (modifier / (1.0 + treasuryBonus));
+        modifier = Math.round(modifier / (1.0 + treasuryBonus) * 100);
         List<EmeraldProdUpgrade> options = EMERALD_MODIFIER_OPTIONS.get((int) modifier);
         if (options == null)
             return null;
