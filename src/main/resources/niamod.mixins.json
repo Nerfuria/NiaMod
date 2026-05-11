@@ -23,6 +23,7 @@
     "HandledScreenMixin",
     "HeldItemRendererMixin",
     "InGameHudMixin",
+    "ItemModelResolverMixin",
     "PlayerListHudAccessor",
     "wynntils.GuildMapScreenMixin"
   ],

@@ -10,7 +10,9 @@ import com.wynntils.utils.render.type.TextShadow;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -28,8 +30,7 @@ import java.util.List;
 
 @SuppressWarnings("unused")
 public class ConsuTextFeature extends Feature {
-
-    private List<StatLabel> STAT_LABELS;
+    private static List<StatLabel> STAT_LABELS = List.of();
 
     @Safe
     public void init() {
@@ -50,9 +51,39 @@ public class ConsuTextFeature extends Feature {
         ItemStack stack = event.stack();
         int slotX = event.slotX();
         int slotY = event.slotY();
+        CustomConsumable consumable = customConsumable(stack);
+        if (consumable == null || consumable.label().isEmpty()) return;
+
+        context.pose().pushMatrix();
+        context.pose().scale(NyahConfig.getData().getIdScale(), NyahConfig.getData().getIdScale());
+        float x = (slotX + NyahConfig.getData().getIdXOffset()) / NyahConfig.getData().getIdScale();
+        float y = (slotY + NyahConfig.getData().getIdYOffset()) / NyahConfig.getData().getIdScale();
+        FontRenderer.getInstance().renderText(context, x, y, new TextRenderTask(StyledText.fromUnformattedString(consumable.label()), TextRenderSetting.DEFAULT.withTextShadow(TextShadow.OUTLINE)));
+        context.pose().popMatrix();
+    }
+
+    public static ItemStack withCustomConsumableModel(ItemStack stack) {
+        if (stack == null || stack.isEmpty() || !NyahConfig.getData().isConsuTextFeatureEnabled()) return stack;
+
         LocalPlayer player = Minecraft.getInstance().player;
         List<Component> lore = stack.getTooltipLines(Item.TooltipContext.EMPTY, player, TooltipFlag.ADVANCED);
-        if (getType(lore) == ConsuType.NONE) return;
+        CustomConsumable consumable = customConsumable(stack, lore);
+        if (consumable == null || consumable.texture() == null) return stack;
+
+        ItemStack copy = stack.copy();
+        copy.set(DataComponents.ITEM_MODEL, consumable.texture());
+        return copy;
+    }
+
+    private CustomConsumable customConsumable(ItemStack stack) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        List<Component> lore = stack.getTooltipLines(Item.TooltipContext.EMPTY, player, TooltipFlag.ADVANCED);
+        return customConsumable(stack, lore);
+    }
+
+    private static CustomConsumable customConsumable(ItemStack stack, List<Component> lore) {
+        ConsuType type = getType(lore);
+        if (type == ConsuType.NONE) return null;
 
         List<String> tooltip = lore
                 .stream()
@@ -67,41 +98,52 @@ public class ConsuTextFeature extends Feature {
                 break;
             }
         }
-        if (startIndex == -1) return;
+        if (startIndex == -1) return null;
         for (int i = startIndex; i < tooltip.size(); i++) {
             if (tooltip.get(i).contains("Crafted by")) {
                 endIndex = i;
                 break;
             }
         }
-        List<String> IDS = tooltip.stream()
+        List<String> ids = tooltip.stream()
                 .skip(startIndex)
                 .limit(endIndex - startIndex)
                 .filter(line -> !line.isBlank())
                 .toList();
 
-        String id = idsToText(IDS);
-        if (id.isEmpty()) return;
-        context.pose().pushMatrix();
-        context.pose().scale(NyahConfig.getData().getIdScale(), NyahConfig.getData().getIdScale());
-        float x = (slotX + NyahConfig.getData().getIdXOffset()) / NyahConfig.getData().getIdScale();
-        float y = (slotY + NyahConfig.getData().getIdYOffset()) / NyahConfig.getData().getIdScale();
-        FontRenderer.getInstance().renderText(context, x, y, new TextRenderTask(StyledText.fromUnformattedString(id), TextRenderSetting.DEFAULT.withTextShadow(TextShadow.OUTLINE)));
-        context.pose().popMatrix();
+        StatLabel label = matchingLabel(ids);
+        if (label == null || label.alias().isEmpty()) return null;
+
+        Identifier texture = textureFor(label);
+        return new CustomConsumable(type, label.alias(), texture);
     }
 
-    private String idsToText(List<String> statTypes) {
+    private static Identifier textureFor(StatLabel label) {
+        return identifier(label.texture());
+    }
+
+    private static Identifier identifier(String value) {
+        if (value == null || value.isBlank()) return null;
+
+        String trimmed = value.trim();
+        int separator = trimmed.indexOf(':');
+        if (separator <= 0 || separator >= trimmed.length() - 1) return null;
+
+        return Identifier.fromNamespaceAndPath(trimmed.substring(0, separator), trimmed.substring(separator + 1));
+    }
+
+    private static StatLabel matchingLabel(List<String> statTypes) {
         for (StatLabel label : STAT_LABELS) {
             int matches = (int) label.ids().stream().filter(statTypes::contains).count();
             int required = label.minCount() != null ? label.minCount() : 1;
             if (matches < required) continue;
-            return label.alias();
+            return label;
         }
 
-        return "";
+        return null;
     }
 
-    private ConsuType getType(List<Component> loreLines) {
+    private static ConsuType getType(List<Component> loreLines) {
         if (loreLines.stream().anyMatch(l -> l.getString().contains("\uE035\uDAFF\uDFFF\uE03E\uDAFF\uDFFF\uE03E\uDAFF\uDFFF\uE033\uDAFF\uDFFF\uE062\uDAFF\uDFE6\uE005\uE00E\uE00E\uE003\uDB00\uDC02")))
             return ConsuType.FOOD;
         if (loreLines.stream().anyMatch(l -> l.getString().contains("\uE042\uDAFF\uDFFF\uE032\uDAFF\uDFFF\uE041\uDAFF\uDFFF\uE03E\uDAFF\uDFFF\uE03B\uDAFF\uDFFF\uE03B\uDAFF\uDFFF\uE062\uDAFF\uDFDA\uE012\uE002\uE011\uE00E\uE00B\uE00B\uDB00\uDC02")))
@@ -109,6 +151,9 @@ public class ConsuTextFeature extends Feature {
         if (loreLines.stream().anyMatch(l -> l.getString().contains("\uE03F\uDAFF\uDFFF\uE03E\uDAFF\uDFFF\uE043\uDAFF\uDFFF\uE038\uDAFF\uDFFF\uE03E\uDAFF\uDFFF\uE03D\uDAFF\uDFFF\uE062\uDAFF\uDFDC\uE00F\uE00E\uE013\uE008\uE00E\uE00D\uDB00\uDC02")))
             return ConsuType.POTION;
         return ConsuType.NONE;
+    }
+
+    private record CustomConsumable(ConsuType type, String label, Identifier texture) {
     }
 
 }

@@ -1,0 +1,7 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "niamod:item/consumables/mana_regen"
+  },
+  "hand_animation_on_swap": false
+}

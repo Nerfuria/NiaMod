@@ -3,19 +3,20 @@
     "ids": [
       "Damage%"
     ],
-    "alias": "DMG%"
+    "alias": "DMG%",
   },
   {
     "ids": [
       "Mana Regens"
     ],
-    "alias": "MR"
+    "alias": "MR",
+    "texture": "niamod:consumables/mana_regen"
   },
   {
     "ids": [
       "Mana Steals"
     ],
-    "alias": "MS"
+    "alias": "MS",
   },
   {
     "ids": [
