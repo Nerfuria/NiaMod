@@ -60,6 +60,7 @@ public class ResourceTickFeature extends Feature {
             lastMapTick = currentMapTick;
             return;
         }
+        DefenseEstimatesFeature.clear_cache();
         lastMapTick = currentMapTick;
 
         String currentWorld = get_world();

@@ -138,7 +138,7 @@ public class DefenseEstimatesFeature extends Feature {
             return result;  // TODO deal with HQs separately
         }
 
-        boolean hasAuraVolley = territoryInfo.getDefences().getLevel() >= 3;
+        boolean hasAuraVolley = territoryInfo.getDefences().getLevel() == 3;    // Force aura and volley if medium
 
         GuildResource[] resources = {GuildResource.ORE, GuildResource.CROPS, GuildResource.WOOD, GuildResource.FISH};
         TerritoryUpgrade[] upgrades = {TerritoryUpgrade.DAMAGE, TerritoryUpgrade.ATTACK, TerritoryUpgrade.HEALTH, TerritoryUpgrade.DEFENCE};
@@ -330,6 +330,11 @@ public class DefenseEstimatesFeature extends Feature {
     public void init() {
         ESTIMATE_CACHE.clear();
         NiaEventBus.subscribe(this);
+    }
+
+    @Safe
+    public static void clear_cache() {
+        DEFENSE_CACHE.clear();
     }
 
     private record EmeraldProdUpgrade(int efficientEmeralds, int emeraldRate, int oreCost, int cropCost) {}
