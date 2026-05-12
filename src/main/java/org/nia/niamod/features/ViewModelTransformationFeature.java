@@ -9,9 +9,6 @@ import org.nia.niamod.eventbus.NiaEventBus;
 import org.nia.niamod.eventbus.Subscribe;
 import org.nia.niamod.models.events.HeldItemBobbingEvent;
 import org.nia.niamod.models.events.HeldItemRenderEvent;
-import org.nia.niamod.models.misc.Feature;
-import org.nia.niamod.models.misc.Safe;
-
 
 @SuppressWarnings("unused")
 public class ViewModelTransformationFeature extends Feature {
@@ -24,40 +21,55 @@ public class ViewModelTransformationFeature extends Feature {
     public void modifyRender(HeldItemRenderEvent event) {
         if (event.hand() == InteractionHand.MAIN_HAND) {
             var config = NyahConfig.getData();
-            event.matrix().mulPose(new Matrix4f()
-                    .translate(config.getXOffset() / 100f, config.getYOffset() / 100f, config.getZOffset() / 100f)
-                    .rotateX((float) Math.toRadians(config.getXRotation()))
-                    .rotateY((float) Math.toRadians(config.getYRotation()))
-                    .rotateZ((float) Math.toRadians(config.getZRotation()))
-                    .scale(config.getItemScale()));
+            event
+                    .matrix()
+                    .mulPose(
+                            new Matrix4f()
+                                    .translate(
+                                            config.getXOffset() / 100f,
+                                            config.getYOffset() / 100f,
+                                            config.getZOffset() / 100f)
+                                    .rotateX((float) Math.toRadians(config.getXRotation()))
+                                    .rotateY((float) Math.toRadians(config.getYRotation()))
+                                    .rotateZ((float) Math.toRadians(config.getZRotation()))
+                                    .scale(config.getItemScale()));
         }
     }
 
     @Subscribe
-    @Safe
     public void onHeldItemBobbing(HeldItemBobbingEvent event) {
-        if (!NyahConfig.getData().isDisableHeldBobbing()) return;
-
+        if (!NyahConfig.getData().isDisableHeldBobbing()) {
+            return;
+        }
         Minecraft mc = event.minecraft();
-        if (mc == null || mc.player == null || mc.gameMode == null) return;
-        if (!mc.options.bobView().get()) return;
-        if (!mc.options.getCameraType().isFirstPerson()) return;
-        if (event.sleeping()) return;
-        if (mc.options.hideGui) return;
-        if (mc.gameMode.getPlayerMode() == GameType.SPECTATOR) return;
-
-        int light = mc.getEntityRenderDispatcher()
-                .getPackedLightCoords(mc.player, event.tickProgress());
-
-        event.itemInHandRenderer().renderHandsWithItems(
-                event.tickProgress(),
-                event.matrixStack(),
-                mc.gameRenderer.getSubmitNodeStorage(),
-                mc.player,
-                light
-        );
-
+        if (mc == null || mc.player == null || mc.gameMode == null) {
+            return;
+        }
+        if (!mc.options.bobView().get()) {
+            return;
+        }
+        if (!mc.options.getCameraType().isFirstPerson()) {
+            return;
+        }
+        if (event.sleeping()) {
+            return;
+        }
+        if (mc.options.hideGui) {
+            return;
+        }
+        if (mc.gameMode.getPlayerMode() == GameType.SPECTATOR) {
+            return;
+        }
+        int light =
+                mc.getEntityRenderDispatcher().getPackedLightCoords(mc.player, event.tickProgress());
+        event
+                .itemInHandRenderer()
+                .renderHandsWithItems(
+                        event.tickProgress(),
+                        event.matrixStack(),
+                        mc.gameRenderer.getSubmitNodeStorage(),
+                        mc.player,
+                        light);
         event.cancel();
     }
-
 }

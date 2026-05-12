@@ -1,23 +1,39 @@
 package org.nia.niamod.render;
 
+import com.llamalad7.mixinextras.sugar.ref.LocalFloatRef;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.FilterMode;
+import com.wynntils.core.text.StyledText;
+import com.wynntils.utils.colors.CommonColors;
+import com.wynntils.utils.render.FontRenderer;
+import com.wynntils.utils.render.type.HorizontalAlignment;
+import com.wynntils.utils.render.type.TextShadow;
+import com.wynntils.utils.render.type.VerticalAlignment;
 import lombok.experimental.UtilityClass;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.TextureSetup;
 import net.minecraft.client.gui.render.state.GuiRenderState;
+import org.nia.niamod.gui.render.*;
 import org.nia.niamod.mixin.GuiGraphicsAccessor;
-import org.nia.niamod.models.gui.render.GuiGraphicsScissorState;
-import org.nia.niamod.models.gui.render.GuiPortalRectRenderState;
-import org.nia.niamod.models.gui.render.GuiShaderRectRenderState;
-import org.nia.niamod.models.gui.render.NiaPipelines;
-import org.nia.niamod.models.gui.render.NiaRenderTarget;
-import org.nia.niamod.models.gui.render.UiRect;
 
 @UtilityClass
 public class Render2D {
+
+    public static void tooltipLine(GuiGraphics guiGraphics, int xOffset, LocalFloatRef renderYOffset, String text) {
+        renderYOffset.set(renderYOffset.get() + 10.0F);
+        FontRenderer.getInstance()
+                .renderText(
+                        guiGraphics,
+                        StyledText.fromString(text),
+                        10 + xOffset,
+                        10.0F + renderYOffset.get(),
+                        CommonColors.WHITE,
+                        HorizontalAlignment.LEFT,
+                        VerticalAlignment.TOP,
+                        TextShadow.OUTLINE);
+    }
 
     public static void fill(GuiGraphics g, UiRect rect, int color) {
         g.fill(rect.x(), rect.y(), rect.right(), rect.bottom(), color);
@@ -196,7 +212,7 @@ public class Render2D {
     }
 
     public static void shaderRoundedRect(GuiGraphics g, int x, int y, int w, int h, int radius, int color) {
-        if (!submitGuiShaderRect(g, NiaPipelines.GUI_ROUNDED_RECT, x, y, w, h, color, radius, 0)) {
+        if (!submitGuiShaderRect(g, RenderPipelines.GUI_ROUNDED_RECT, x, y, w, h, color, radius, 0)) {
             roundedRect(g, x, y, w, h, radius, color);
         }
     }
@@ -221,7 +237,7 @@ public class Render2D {
     public static void shaderPortalOverlay(GuiGraphics g, int x, int y, int w, int h, int color, float progress) {
         int encodedProgress = Math.max(0, Math.min(1000, Math.round(progress * 1000.0f)));
         int time = (int) ((System.currentTimeMillis() / 4L) % 60000L);
-        if (!submitGuiShaderRect(g, NiaPipelines.GUI_PORTAL_OVERLAY, x, y, w, h, color, encodedProgress, time)) {
+        if (!submitGuiShaderRect(g, RenderPipelines.GUI_PORTAL_OVERLAY, x, y, w, h, color, encodedProgress, time)) {
             int alpha = Math.max(0, Math.min(255, Math.round(((color >>> 24) & 0xFF) * progress)));
             roundedRect(g, x, y, w, h, Math.max(6, Math.min(w, h) / 5), withAlpha(color, alpha));
         }
@@ -229,7 +245,7 @@ public class Render2D {
 
     public static void shaderPortalCapture(
             GuiGraphics g,
-            NiaRenderTarget snapshot,
+            RenderTarget snapshot,
             int x,
             int y,
             int w,
@@ -245,7 +261,7 @@ public class Render2D {
     ) {
         shaderWindowCapture(
                 g,
-                NiaPipelines.GUI_PORTAL_CAPTURE,
+                RenderPipelines.GUI_PORTAL_CAPTURE,
                 snapshot,
                 x,
                 y,
@@ -264,7 +280,7 @@ public class Render2D {
 
     public static void shaderIncinerateCapture(
             GuiGraphics g,
-            NiaRenderTarget snapshot,
+            RenderTarget snapshot,
             int x,
             int y,
             int w,
@@ -280,7 +296,7 @@ public class Render2D {
     ) {
         shaderWindowCapture(
                 g,
-                NiaPipelines.GUI_INCINERATE_CAPTURE,
+                RenderPipelines.GUI_INCINERATE_CAPTURE,
                 snapshot,
                 x,
                 y,
@@ -299,7 +315,7 @@ public class Render2D {
 
     public static void shaderMushroomCapture(
             GuiGraphics g,
-            NiaRenderTarget snapshot,
+            RenderTarget snapshot,
             int x,
             int y,
             int w,
@@ -315,7 +331,7 @@ public class Render2D {
     ) {
         shaderWindowCapture(
                 g,
-                NiaPipelines.GUI_MUSHROOM_CAPTURE,
+                RenderPipelines.GUI_MUSHROOM_CAPTURE,
                 snapshot,
                 x,
                 y,
@@ -335,7 +351,7 @@ public class Render2D {
     private static void shaderWindowCapture(
             GuiGraphics g,
             com.mojang.blaze3d.pipeline.RenderPipeline pipeline,
-            NiaRenderTarget snapshot,
+            RenderTarget snapshot,
             int x,
             int y,
             int w,

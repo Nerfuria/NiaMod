@@ -2,29 +2,27 @@ package org.nia.niamod.features.radiance;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import lombok.extern.slf4j.Slf4j;
 import org.nia.niamod.config.NyahConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.nia.niamod.models.radiance.RadianceSyncEntry;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("unused")
+@Slf4j(topic = "niamod")
 public class CloudflareSync {
-    private static final Logger LOGGER = LoggerFactory.getLogger("niamod");
     private static final Gson GSON = new Gson();
     private static final long RECONNECT_INTERVAL_MS = 5000L;
     private static final long PING_INTERVAL_MS = 5000L;
     private static final long MAX_REASONABLE_RTT_MS = 10000L;
     private static final String DEFAULT_WORKER_URL = "https://radiancesync.wavelink.workers.dev";
-    private static final String ALLOWED_WORKER_HOST = "radiancesync.wavelink.workers.dev";
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
-    private final AtomicReference<Entry> pendingEntry = new AtomicReference<>(null);
+    private final AtomicReference<RadianceSyncEntry> pendingEntry = new AtomicReference<>(null);
     private final AtomicBoolean connecting = new AtomicBoolean(false);
 
     private volatile WebSocket webSocket;
@@ -110,65 +108,44 @@ public class CloudflareSync {
 
         try {
             httpClient.newWebSocketBuilder()
-                    .buildAsync(wsUri, new WebSocket.Listener() {
-                        private final StringBuilder textBuffer = new StringBuilder();
-
-                        @Override
-                        public void onOpen(WebSocket ws) {
-                            webSocket = ws;
-                            connectedKey = key;
-                            connectedPlayerName = playerName;
-                            connectedPlayerUuid = playerUuid;
-                            lastPingSentMs = 0L;
-                            connecting.set(false);
-                            LOGGER.info("[RadianceSync] WebSocket connected");
-                            sendHello(ws, key, playerName, playerUuid);
-                            ws.request(1);
-                        }
-
-                        @Override
-                        public CompletionStage<?> onText(WebSocket ws, CharSequence data, boolean last) {
-                            if (last) {
-                                String payload;
-                                if (textBuffer.isEmpty()) {
-                                    payload = data.toString();
-                                } else {
-                                    textBuffer.append(data);
-                                    payload = textBuffer.toString();
-                                    textBuffer.setLength(0);
-                                }
-                                handleIncomingMessage(payload);
-                            } else {
-                                textBuffer.append(data);
-                            }
-                            ws.request(1);
-                            return null;
-                        }
-
-                        @Override
-                        public CompletionStage<?> onClose(WebSocket ws, int statusCode, String reason) {
-                            LOGGER.info("[RadianceSync] WebSocket closed: {} {}", statusCode, reason);
-                            clearSocketState(ws);
-                            connecting.set(false);
-                            return null;
-                        }
-
-                        @Override
-                        public void onError(WebSocket ws, Throwable error) {
-                            LOGGER.warn("[RadianceSync] WebSocket error: {}", error.getMessage());
-                            clearSocketState(ws);
-                            connecting.set(false);
-                        }
-                    })
+                    .buildAsync(wsUri, new RadianceWebSocketListener(
+                            ws -> handleOpen(ws, key, playerName, playerUuid),
+                            (ws, payload) -> handleIncomingMessage(payload),
+                            this::handleClose,
+                            this::handleError
+                    ))
                     .exceptionally(ex -> {
                         connecting.set(false);
-                        LOGGER.warn("[RadianceSync] WebSocket connect failed: {}", ex.getMessage());
+                        log.warn("[RadianceSync] WebSocket connect failed: {}", ex.getMessage());
                         return null;
                     });
         } catch (Exception e) {
             connecting.set(false);
-            LOGGER.warn("[RadianceSync] Failed to start WS connect: {}", e.getMessage());
+            log.warn("[RadianceSync] Failed to start WS connect: {}", e.getMessage());
         }
+    }
+
+    private void handleOpen(WebSocket ws, String key, String playerName, String playerUuid) {
+        webSocket = ws;
+        connectedKey = key;
+        connectedPlayerName = playerName;
+        connectedPlayerUuid = playerUuid;
+        lastPingSentMs = 0L;
+        connecting.set(false);
+        log.info("[RadianceSync] WebSocket connected");
+        sendHello(ws, key, playerName, playerUuid);
+    }
+
+    private void handleClose(WebSocket ws, int statusCode, String reason) {
+        log.info("[RadianceSync] WebSocket closed: {} {}", statusCode, reason);
+        clearSocketState(ws);
+        connecting.set(false);
+    }
+
+    private void handleError(WebSocket ws, Throwable error) {
+        log.warn("[RadianceSync] WebSocket error: {}", error.getMessage());
+        clearSocketState(ws);
+        connecting.set(false);
     }
 
     private URI workerWebSocketUri() {
@@ -180,8 +157,8 @@ public class CloudflareSync {
         try {
             URI uri = URI.create(workerUrl.trim());
             String host = uri.getHost();
-            if (!ALLOWED_WORKER_HOST.equalsIgnoreCase(host)) {
-                LOGGER.warn("[RadianceSync] Refusing untrusted worker host: {}", host);
+            if (host == null || host.isBlank()) {
+                log.warn("[RadianceSync] Invalid worker URL host");
                 return defaultWorkerWebSocketUri();
             }
             String scheme = uri.getScheme();
@@ -189,10 +166,10 @@ public class CloudflareSync {
                 String path = uri.getPath() == null ? "" : uri.getPath();
                 return new URI("wss", null, host, uri.getPort(), path, null, null);
             }
-            LOGGER.warn("[RadianceSync] Refusing unsupported worker URL scheme: {}", scheme);
+            log.warn("[RadianceSync] Refusing unsupported worker URL scheme: {}", scheme);
             return defaultWorkerWebSocketUri();
         } catch (Exception exception) {
-            LOGGER.warn("[RadianceSync] Invalid worker URL, using default: {}", exception.getMessage());
+            log.warn("[RadianceSync] Invalid worker URL, using default: {}", exception.getMessage());
             return defaultWorkerWebSocketUri();
         }
     }
@@ -230,7 +207,7 @@ public class CloudflareSync {
         sendText(ws, GSON.toJson(payload));
     }
 
-    public Entry consumePending() {
+    public RadianceSyncEntry consumePending() {
         return pendingEntry.getAndSet(null);
     }
 
@@ -296,12 +273,12 @@ public class CloudflareSync {
                 handlePong(message);
                 return;
             }
-            Entry entry = parseEntry(message);
+            RadianceSyncEntry entry = parseEntry(message);
             if (entry != null) {
                 pendingEntry.set(entry);
             }
         } catch (Exception e) {
-            LOGGER.warn("[RadianceSync] Failed to parse WS message: {}", e.getMessage());
+            log.warn("[RadianceSync] Failed to parse WS message: {}", e.getMessage());
         }
     }
 
@@ -322,7 +299,7 @@ public class CloudflareSync {
         estimatedRttMs = Math.round((estimatedRttMs * 0.75) + (rttMs * 0.25));
     }
 
-    private Entry parseEntry(JsonObject message) {
+    private RadianceSyncEntry parseEntry(JsonObject message) {
         int tier = getInt(message, "tier");
         if (tier < 0 || tier > 3) {
             return null;
@@ -333,12 +310,12 @@ public class CloudflareSync {
             return null;
         }
 
-        return new Entry(tier, remainingMs, System.currentTimeMillis());
+        return new RadianceSyncEntry(tier, remainingMs, System.currentTimeMillis());
     }
 
     private void sendText(WebSocket ws, String payload) {
         ws.sendText(payload, true).exceptionally(ex -> {
-            LOGGER.warn("[RadianceSync] WS send failed: {}", ex.getMessage());
+            log.warn("[RadianceSync] WS send failed: {}", ex.getMessage());
             clearSocketState(ws);
             connecting.set(false);
             return null;
@@ -355,6 +332,4 @@ public class CloudflareSync {
         }
     }
 
-    public record Entry(int tier, long remainingMs, long receivedAtMs) {
-    }
 }

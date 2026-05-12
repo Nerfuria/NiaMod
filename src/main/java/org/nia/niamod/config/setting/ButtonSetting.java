@@ -8,7 +8,7 @@ public class ButtonSetting extends ConfigSetting<Runnable> {
     private final String buttonText;
 
     public ButtonSetting(String id, String title, String description, Runnable action, String buttonText) {
-        super(id, title, description, org.nia.niamod.models.config.SettingKind.BUTTON, () -> action, a -> {
+        super(id, title, description, SettingKind.BUTTON, () -> action, a -> {
         });
         this.action = action;
         this.buttonText = buttonText;
@@ -29,4 +29,3 @@ public class ButtonSetting extends ConfigSetting<Runnable> {
         return false;
     }
 }
-

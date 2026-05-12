@@ -18,8 +18,7 @@ public class WynncraftAPI {
     private static final Gson gson = new Gson();
 
     public static CompletableFuture<Map<String, TerritoryResponse>> territoryResponseAsync() {
-        Type type = new TypeToken<Map<String, TerritoryResponse>>() {
-        }.getType();
+        Type type = TypeToken.getParameterized(Map.class, String.class, TerritoryResponse.class).getType();
         return WebUtils.queryAPIAsync(NyahConfig.getData().getApiBase() + "guild/list/territory")
                 .thenApply(json -> {
                     Map<String, TerritoryResponse> response = gson.fromJson(json, type);

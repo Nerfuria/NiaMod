@@ -1,6 +1,6 @@
 package org.nia.niamod.config.setting;
 
-import org.nia.niamod.models.config.SettingCategory;
+import org.nia.niamod.config.choices.SettingCategory;
 
 import java.util.List;
 import java.util.function.Consumer;

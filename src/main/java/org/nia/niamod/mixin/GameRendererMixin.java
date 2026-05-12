@@ -13,8 +13,8 @@ import net.minecraft.client.renderer.ItemInHandRenderer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import org.joml.Matrix4f;
 import org.nia.niamod.eventbus.NiaEventBus;
+import org.nia.niamod.gui.screen.ConfigScreen;
 import org.nia.niamod.models.events.HeldItemBobbingEvent;
-import org.nia.niamod.render.NiaClickGuiScreen;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -45,20 +45,20 @@ public abstract class GameRendererMixin {
             )
     )
     private void niamod$onBeforeBobView(
-            float tickProgress,
-            boolean sleeping,
-            Matrix4f positionMatrix,
+            float f,
+            boolean bl,
+            Matrix4f matrix4f,
             CallbackInfo ci,
-            @Local PoseStack matrixStack
+            @Local PoseStack poseStack
     ) {
         niamod$skipVanillaHandRender = false;
 
         HeldItemBobbingEvent event = new HeldItemBobbingEvent(
                 this.minecraft,
                 this.itemInHandRenderer,
-                tickProgress,
-                sleeping,
-                matrixStack
+                f,
+                bl,
+                poseStack
         );
 
         NiaEventBus.dispatch(event, canceled -> niamod$skipVanillaHandRender = true);
@@ -73,18 +73,18 @@ public abstract class GameRendererMixin {
     )
     private void niamod$skipRender(
             ItemInHandRenderer instance,
-            float tickProgress,
-            PoseStack matrices,
-            SubmitNodeCollector orderedRenderCommandQueue,
-            LocalPlayer player,
-            int light,
+            float f,
+            PoseStack poseStack,
+            SubmitNodeCollector submitNodeCollector,
+            LocalPlayer localPlayer,
+            int i,
             Operation<Void> original
     ) {
         if (niamod$skipVanillaHandRender) {
             niamod$skipVanillaHandRender = false;
             return;
         }
-        original.call(instance, tickProgress, matrices, orderedRenderCommandQueue, player, light);
+        original.call(instance, f, poseStack, submitNodeCollector, localPlayer, i);
     }
 
     @Inject(
@@ -97,13 +97,13 @@ public abstract class GameRendererMixin {
     )
     private void niamod$prepareClickGuiAnimation(
             DeltaTracker deltaTracker,
-            boolean renderLevel,
+            boolean bl,
             CallbackInfo ci,
             @Local GuiGraphics guiGraphics
     ) {
-        if (this.minecraft.screen instanceof NiaClickGuiScreen clickGuiScreen && clickGuiScreen.shouldPreparePortalSnapshot()) {
-            clickGuiScreen.preparePortalSnapshotOffscreen();
-            clickGuiScreen.renderPortalTransition(guiGraphics);
+        if (this.minecraft.screen instanceof ConfigScreen configScreen && configScreen.shouldPreparePortalSnapshot()) {
+            configScreen.preparePortalSnapshotOffscreen();
+            configScreen.renderPortalTransition(guiGraphics);
         }
     }
 }

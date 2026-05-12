@@ -5,6 +5,8 @@ import lombok.experimental.UtilityClass;
 import org.nia.niamod.config.NyahConfig;
 import org.nia.niamod.features.*;
 
+import java.util.List;
+
 @SuppressWarnings("unused")
 @UtilityClass
 public class FeatureManager {
@@ -44,17 +46,21 @@ public class FeatureManager {
         ignoreFeature = new IgnoreFeature();
         defenseEstimatesFeature = new DefenseEstimatesFeature();
 
-        resTickFeature.runSafe("init", resTickFeature::init);
-        chatEncryptionFeature.runSafe("init", chatEncryptionFeature::init);
-        warTimersFeature.runSafe("init", warTimersFeature::init);
-        warTowerEHPFeature.runSafe("init", warTowerEHPFeature::init);
-        consuTextFeature.runSafe("init", consuTextFeature::init);
-        shoutFilterFeature.runSafe("init", shoutFilterFeature::init);
-        viewModelTransformationFeature.runSafe("init", viewModelTransformationFeature::init);
-        radianceSyncFeature.runSafe("init", radianceSyncFeature::init);
-        autoStreamFeature.runSafe("init", autoStreamFeature::init);
-        ignoreFeature.runSafe("init", ignoreFeature::init);
-        defenseEstimatesFeature.runSafe("init", defenseEstimatesFeature::init);
+        for (Feature feature : List.of(
+                resTickFeature,
+                chatEncryptionFeature,
+                warTimersFeature,
+                warTowerEHPFeature,
+                consuTextFeature,
+                shoutFilterFeature,
+                viewModelTransformationFeature,
+                radianceSyncFeature,
+                autoStreamFeature,
+                ignoreFeature,
+                defenseEstimatesFeature
+        )) {
+            feature.runSafe("init", feature::init);
+        }
 
         NyahConfig.onFeaturesInitialized();
     }

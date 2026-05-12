@@ -2,11 +2,12 @@ package org.nia.niamod.config;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.nia.niamod.models.config.ClickGuiAnimationMode;
-import org.nia.niamod.models.config.RadianceOverlayMode;
-import org.nia.niamod.models.config.ShoutReplacement;
-import org.nia.niamod.models.gui.theme.ClickGuiFontOption;
-import org.nia.niamod.models.gui.theme.ClickGuiThemeOption;
+import org.nia.niamod.config.choices.GuiAnimationMode;
+import org.nia.niamod.config.choices.RadianceOverlayMode;
+import org.nia.niamod.config.choices.ShoutReplacement;
+import org.nia.niamod.features.ConsuTextFeature;
+import org.nia.niamod.gui.theme.FontOption;
+import org.nia.niamod.gui.theme.ThemeOption;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -16,14 +17,12 @@ import java.util.List;
 @Setter
 public class NyahConfigData {
     private static final String DEFAULT_RADIANCE_SYNC_WORKER_URL = "https://radiancesync.wavelink.workers.dev";
-    private static final String ALLOWED_RADIANCE_SYNC_WORKER_HOST = "radiancesync.wavelink.workers.dev";
-
     private String apiBase = "https://api.wynncraft.com/v3/";
     private String guildName = "Nerfuria";
 
-    private String clickGuiTheme = ClickGuiThemeOption.DEFAULT.getKey();
-    private String clickGuiFont = ClickGuiFontOption.MINECRAFT_DEFAULT.getKey();
-    private ClickGuiAnimationMode clickGuiAnimation = ClickGuiAnimationMode.NONE;
+    private String clickGuiTheme = ThemeOption.DEFAULT.getKey();
+    private String clickGuiFont = FontOption.MINECRAFT_DEFAULT.getKey();
+    private GuiAnimationMode clickGuiAnimation = GuiAnimationMode.NONE;
     private int animationTime = 1000;
     private float guiOpacity = 0.9f;
     private int customGuiBackground = 0x171A21;
@@ -60,6 +59,7 @@ public class NyahConfigData {
     private float idScale = 0.7f;
     private int idXOffset = 1;
     private int idYOffset = 1;
+    private String consumableTextureCategory = ConsuTextFeature.NO_TEXTURE_CATEGORY;
 
     private int streamCooldown = 5000;
 
@@ -97,7 +97,7 @@ public class NyahConfigData {
         this.encryptionPrefix = encryptionPrefix == null || encryptionPrefix.isBlank() ? "@" : encryptionPrefix;
     }
 
-    public void normalize() {
+    public void normalise() {
         if (apiBase == null || apiBase.isBlank()) {
             apiBase = "https://api.wynncraft.com/v3/";
         }
@@ -115,11 +115,11 @@ public class NyahConfigData {
             ignoredPlayers = new ArrayList<>();
         }
 
-        clickGuiTheme = ClickGuiThemeOption.resolve(clickGuiTheme).getKey();
-        clickGuiFont = ClickGuiFontOption.resolve(clickGuiFont).getKey();
+        clickGuiTheme = ThemeOption.resolve(clickGuiTheme).getKey();
+        clickGuiFont = FontOption.resolve(clickGuiFont).getKey();
 
         if (clickGuiAnimation == null) {
-            clickGuiAnimation = ClickGuiAnimationMode.NONE;
+            clickGuiAnimation = GuiAnimationMode.NONE;
         }
         if (shoutFilterMode == null) {
             shoutFilterMode = ShoutReplacement.COLLAPSE;
@@ -152,6 +152,7 @@ public class NyahConfigData {
         idScale = clamp(idScale, 0.25f, 2.5f);
         idXOffset = clamp(idXOffset, -16, 16);
         idYOffset = clamp(idYOffset, -16, 16);
+        consumableTextureCategory = ConsuTextFeature.resolveTextureCategory(consumableTextureCategory);
 
         streamCooldown = clamp(streamCooldown, 100, 10000);
 
@@ -176,7 +177,7 @@ public class NyahConfigData {
         if (radianceSyncGroupKey == null) {
             radianceSyncGroupKey = "";
         }
-        radianceSyncWorkerUrl = normalizeRadianceWorkerUrl(radianceSyncWorkerUrl);
+        radianceSyncWorkerUrl = normaliseRadianceWorkerUrl(radianceSyncWorkerUrl);
         resTickOverlayScale = clamp(resTickOverlayScale, 0.5f, 3.0f);
         resTickOverlayOffsetX = clamp(resTickOverlayOffsetX, -2000, 2000);
         resTickOverlayOffsetY = clamp(resTickOverlayOffsetY, -2000, 2000);
@@ -193,17 +194,17 @@ public class NyahConfigData {
         return Math.max(min, Math.min(max, value));
     }
 
-    private String normalizeRadianceWorkerUrl(String workerUrl) {
+    private String normaliseRadianceWorkerUrl(String workerUrl) {
         if (workerUrl == null || workerUrl.isBlank()) {
             return DEFAULT_RADIANCE_SYNC_WORKER_URL;
         }
         try {
-            URI uri = URI.create(workerUrl.trim());
+            String trimmed = workerUrl.trim();
+            URI uri = URI.create(trimmed);
             String scheme = uri.getScheme();
             String host = uri.getHost();
-            if (("https".equalsIgnoreCase(scheme) || "wss".equalsIgnoreCase(scheme))
-                    && ALLOWED_RADIANCE_SYNC_WORKER_HOST.equalsIgnoreCase(host)) {
-                return DEFAULT_RADIANCE_SYNC_WORKER_URL;
+            if (host != null && ("https".equalsIgnoreCase(scheme) || "wss".equalsIgnoreCase(scheme))) {
+                return trimmed;
             }
         } catch (Exception ignored) {
         }

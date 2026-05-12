@@ -7,7 +7,6 @@ import org.nia.niamod.eventbus.NiaEventBus;
 import org.nia.niamod.eventbus.Subscribe;
 import org.nia.niamod.models.events.BossBarNameEvent;
 import org.nia.niamod.models.events.CommandSentEvent;
-import org.nia.niamod.models.misc.Feature;
 
 @SuppressWarnings("unused")
 public class AutoStreamFeature extends Feature {
@@ -19,7 +18,8 @@ public class AutoStreamFeature extends Feature {
     @Override
     public void init() {
         NiaEventBus.subscribe(this);
-        ClientTickEvents.END_CLIENT_TICK.register(this::onTick);
+        ClientTickEvents.END_CLIENT_TICK.register(client ->
+                runSafe("onTick", () -> onTick(client)));
     }
 
     private void onTick(Minecraft mc) {

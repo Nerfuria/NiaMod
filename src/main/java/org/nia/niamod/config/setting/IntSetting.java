@@ -1,7 +1,6 @@
 package org.nia.niamod.config.setting;
 
 import lombok.Getter;
-import org.nia.niamod.models.config.SettingKind;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;

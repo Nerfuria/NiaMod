@@ -7,37 +7,31 @@ import org.nia.niamod.NiamodClient;
 import org.nia.niamod.config.NyahConfig;
 import org.nia.niamod.eventbus.NiaEventBus;
 import org.nia.niamod.eventbus.Subscribe;
+import org.nia.niamod.gui.screen.IgnoreManagerScreen;
 import org.nia.niamod.managers.KeybindManager;
-import org.nia.niamod.managers.Scheduler;
+import org.nia.niamod.managers.SchedulerManager;
 import org.nia.niamod.models.events.ChatMessageReceivedEvent;
-import org.nia.niamod.render.IgnoreManagerScreen;
 import org.nia.niamod.models.ignore.IgnoreAction;
 import org.nia.niamod.models.ignore.IgnorePlayerEntry;
 import org.nia.niamod.models.ignore.IgnorePlayerMode;
-import org.nia.niamod.models.misc.Feature;
-import org.nia.niamod.models.misc.Safe;
+import org.nia.niamod.models.ignore.QueuedIgnoreCommand;
 import org.nia.niamod.util.WynncraftAPI;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @SuppressWarnings("unused")
 public class IgnoreFeature extends Feature {
     private static final int IGNORE_QUEUE_INTERVAL_TICKS = 10;
-    private static final Pattern CHAT_PLAYER_PATTERN = Pattern.compile("(\uDAFF\uDFFC\uE008\uDAFF\uDFFF\uE002\uDAFF\uDFFE|\uDAFF\uDFFC\uE001\uDB00\uDC06) ([A-Za-z0-9]{3,16}) has been added to your ignore list!");
-    private static final Pattern CHAT_ALREADY_IGNORED_PATTERN = Pattern.compile("(\uDAFF\uDFFC\uE008\uDAFF\uDFFF\uE002\uDAFF\uDFFE|\uDAFF\uDFFC\uE001\uDB00\uDC06) ([A-Za-z0-9]{3,16}) is already ignored!");
-    private static final Pattern CHAT_UNIGNORED_PATTERN = Pattern.compile("(\uDAFF\uDFFC\uE008\uDAFF\uDFFF\uE002\uDAFF\uDFFE|\uDAFF\uDFFC\uE001\uDB00\uDC06) ([A-Za-z0-9]{3,16}) has been removed from your ignore list!");
+    private static final String IGNORE_PREFIX = "(\uDAFF\uDFFC\uE008\uDAFF\uDFFF\uE002\uDAFF\uDFFE|\uDAFF\uDFFC\uE001\uDB00\uDC06)";
+    private static final String IGNORE_PLAYER = "([A-Za-z0-9]{3,16})";
+    private static final Pattern IGNORED_PATTERN =
+            Pattern.compile(IGNORE_PREFIX + " " + IGNORE_PLAYER + " has been added to your ignore list!");
+    private static final Pattern ALREADY_IGNORED_PATTERN =
+            Pattern.compile(IGNORE_PREFIX + " " + IGNORE_PLAYER + " is already ignored!");
+    private static final Pattern UNIGNORED_PATTERN =
+            Pattern.compile(IGNORE_PREFIX + " " + IGNORE_PLAYER + " has been removed from your ignore list!");
 
     private final Set<String> ignoredPlayers = new HashSet<>();
     private final Set<String> chatDetectedPlayers = new HashSet<>();
@@ -49,18 +43,26 @@ public class IgnoreFeature extends Feature {
     @Getter
     private List<String> players;
 
+    private static Optional<String> playerName(String message, Pattern pattern) {
+        Matcher matcher = pattern.matcher(message);
+        if (!matcher.find() || matcher.groupCount() < 2) {
+            return Optional.empty();
+        }
+
+        String playerName = matcher.group(2);
+        return playerName == null || playerName.isBlank() ? Optional.empty() : Optional.of(playerName);
+    }
+
     @Override
     public void init() {
         KeybindManager.registerKeybinding(
                 "Open Ignore Manager",
                 GLFW.GLFW_KEY_BACKSLASH,
-                safeRunnable("open_manager", this::openScreen)
-        );
+                safeRunnable("open_manager", this::openScreen));
         KeybindManager.registerKeybinding(
                 "Mass Ignore",
                 GLFW.GLFW_KEY_RIGHT_BRACKET,
-                safeRunnable("toggle_favourite_ignores", this::toggleFavourites)
-        );
+                safeRunnable("toggle_favourite_ignores", this::toggleFavourites));
         NiaEventBus.subscribe(this);
         players = List.of();
         loadPersistedIgnoredPlayers();
@@ -69,26 +71,28 @@ public class IgnoreFeature extends Feature {
     }
 
     private void loadGuildPlayersAsync() {
-        WynncraftAPI.guildResponseAsync(NyahConfig.getData().getGuildName()).whenComplete((response, throwable) -> {
-            if (throwable != null) {
-                NiamodClient.LOGGER.warn("Failed to load guild players", throwable);
-                return;
-            }
-            List<String> loadedPlayers = response == null ? List.of() : response.allUsernames();
-            Minecraft.getInstance().execute(() -> {
-                players = loadedPlayers;
-                markChanged();
-            });
-        });
+        WynncraftAPI.guildResponseAsync(NyahConfig.getData().getGuildName())
+                .whenComplete(
+                        (response, throwable) -> {
+                            if (throwable != null) {
+                                NiamodClient.LOGGER.warn("Failed to load guild players", throwable);
+                                return;
+                            }
+                            List<String> loadedPlayers = response == null ? List.of() : response.allUsernames();
+                            Minecraft.getInstance().execute(() -> {
+                                players = loadedPlayers;
+                                markChanged();
+                            });
+                        });
     }
 
     public List<IgnorePlayerEntry> getVisiblePlayers(String searchQuery) {
-        String query = normalize(searchQuery);
+        String query = normalise(searchQuery);
         return listedPlayers().stream()
-                .filter(entry -> query.isEmpty() || normalize(entry.playerName()).contains(query))
-                .sorted(Comparator
-                        .comparingInt(this::rowRank)
-                        .thenComparing(entry -> normalize(entry.playerName())))
+                .filter(entry -> query.isEmpty() || normalise(entry.playerName()).contains(query))
+                .sorted(
+                        Comparator.comparingInt(this::rowRank)
+                                .thenComparing(entry -> normalise(entry.playerName())))
                 .toList();
     }
 
@@ -161,7 +165,7 @@ public class IgnoreFeature extends Feature {
     }
 
     public boolean isIgnored(String playerName) {
-        return ignoredPlayers.contains(normalize(playerName));
+        return ignoredPlayers.contains(normalise(playerName));
     }
 
     public boolean hasIgnoredPlayers() {
@@ -186,8 +190,8 @@ public class IgnoreFeature extends Feature {
     }
 
     public void toggleIgnored(String playerName) {
-        String normalized = normalize(playerName);
-        boolean ignored = ignoredPlayers.contains(normalized);
+        String normalised = normalise(playerName);
+        boolean ignored = ignoredPlayers.contains(normalised);
         queueAction(playerName, ignored ? IgnoreAction.UNIGNORE : IgnoreAction.IGNORE);
     }
 
@@ -213,7 +217,6 @@ public class IgnoreFeature extends Feature {
     }
 
     @Subscribe
-    @Safe
     public void onChatMessage(ChatMessageReceivedEvent event) {
         if (event.message() != null) {
             addPlayerFromChatMessage(event.message().getString());
@@ -224,17 +227,16 @@ public class IgnoreFeature extends Feature {
         if (message == null || message.isBlank()) {
             return;
         }
-
-        applyPlayerPattern(message, CHAT_PLAYER_PATTERN, this::markIgnoredFromChat);
-        applyPlayerPattern(message, CHAT_ALREADY_IGNORED_PATTERN, this::markIgnoredFromChat);
-        applyPlayerPattern(message, CHAT_UNIGNORED_PATTERN, this::markUnignored);
+        playerName(message, IGNORED_PATTERN)
+                .or(() -> playerName(message, ALREADY_IGNORED_PATTERN))
+                .ifPresent(this::markIgnoredFromChat);
+        playerName(message, UNIGNORED_PATTERN).ifPresent(this::markUnignored);
     }
 
-    public void markIgnoredFromChat(String playerName) {
+    private void markIgnoredFromChat(String playerName) {
         if (playerName == null || playerName.isBlank()) {
             return;
         }
-
         String trimmed = playerName.trim();
         boolean ignoredChanged = setIgnored(trimmed, true);
         boolean detectedChanged = false;
@@ -245,32 +247,6 @@ public class IgnoreFeature extends Feature {
             persistIgnoredPlayers();
             markChanged();
         }
-    }
-
-    private void applyPlayerPattern(String message, Pattern pattern, Consumer<String> action) {
-        Matcher matcher = pattern.matcher(message);
-        if (!matcher.find()) {
-            return;
-        }
-
-        String playerName = playerNameFromMatcher(matcher);
-        if (playerName != null && !playerName.isBlank()) {
-            action.accept(playerName);
-        }
-    }
-
-    private String playerNameFromMatcher(Matcher matcher) {
-        try {
-            String namedGroup = matcher.group("player");
-            if (namedGroup != null && !namedGroup.isBlank()) {
-                return namedGroup;
-            }
-        } catch (IllegalArgumentException ignored) {
-        }
-        if (matcher.groupCount() >= 1) {
-            return matcher.group(2);
-        }
-        return matcher.group();
     }
 
     private List<IgnorePlayerEntry> listedPlayers() {
@@ -292,7 +268,7 @@ public class IgnoreFeature extends Feature {
                 continue;
             }
             String trimmed = name.trim();
-            entries.putIfAbsent(normalize(trimmed), player(trimmed, canChangeMode(trimmed)));
+            entries.putIfAbsent(normalise(trimmed), player(trimmed, canChangeMode(trimmed)));
         }
     }
 
@@ -302,7 +278,7 @@ public class IgnoreFeature extends Feature {
                 continue;
             }
             String trimmed = name.trim();
-            entries.put(normalize(trimmed), player(trimmed, false));
+            entries.put(normalise(trimmed), player(trimmed, false));
         }
     }
 
@@ -311,29 +287,30 @@ public class IgnoreFeature extends Feature {
             if (name == null || name.isBlank()) {
                 continue;
             }
-
             String trimmed = name.trim();
-            String normalized = normalize(trimmed);
-            if (ignoredPlayers.contains(normalized)) {
-                entries.putIfAbsent(normalized, player(trimmed, false));
+            String normalised = normalise(trimmed);
+            if (ignoredPlayers.contains(normalised)) {
+                entries.putIfAbsent(normalised, player(trimmed, false));
             }
         }
     }
 
     private IgnorePlayerEntry player(String playerName, boolean modeEditable) {
-        return new IgnorePlayerEntry(playerName, modeFor(playerName), isIgnored(playerName), modeEditable);
+        return new IgnorePlayerEntry(
+                playerName, modeFor(playerName), isIgnored(playerName), modeEditable);
     }
 
     private boolean addChatDetected(String playerName) {
         String trimmed = playerName.trim();
-        boolean removed = chatDetectedPlayers.removeIf(name -> normalize(name).equals(normalize(trimmed)));
+        boolean removed =
+                chatDetectedPlayers.removeIf(name -> normalise(name).equals(normalise(trimmed)));
         boolean added = chatDetectedPlayers.add(trimmed);
         return removed || added;
     }
 
     private boolean removeChatDetected(String playerName) {
-        String normalized = normalize(playerName);
-        return chatDetectedPlayers.removeIf(name -> normalize(name).equals(normalized));
+        String normalised = normalise(playerName);
+        return chatDetectedPlayers.removeIf(name -> normalise(name).equals(normalised));
     }
 
     private int rowRank(IgnorePlayerEntry entry) {
@@ -350,8 +327,8 @@ public class IgnoreFeature extends Feature {
     }
 
     private boolean isChatDetected(String playerName) {
-        String normalized = normalize(playerName);
-        return chatDetectedPlayers.stream().anyMatch(name -> normalize(name).equals(normalized));
+        String normalised = normalise(playerName);
+        return chatDetectedPlayers.stream().anyMatch(name -> normalise(name).equals(normalised));
     }
 
     private boolean isKnownPlayer(String playerName) {
@@ -366,28 +343,25 @@ public class IgnoreFeature extends Feature {
         if (playerName == null || playerName.isBlank()) {
             return false;
         }
-
-        String normalized = normalize(playerName);
+        String normalised = normalise(playerName);
         if (ignored) {
-            return ignoredPlayers.add(normalized);
+            return ignoredPlayers.add(normalised);
         }
-        return ignoredPlayers.remove(normalized);
+        return ignoredPlayers.remove(normalised);
     }
 
     private void scheduleQueuedCommands() {
-        Scheduler.scheduleRepeating(
+        SchedulerManager.scheduleRepeating(
                 safeRunnable("ignore_queue", this::runNextQueuedCommand),
                 IGNORE_QUEUE_INTERVAL_TICKS,
                 IGNORE_QUEUE_INTERVAL_TICKS,
-                () -> false
-        );
+                () -> false);
     }
 
     private void queueAction(String playerName, IgnoreAction action) {
         if (action == null || playerName == null || playerName.isBlank()) {
             return;
         }
-
         String trimmed = playerName.trim();
         queuedCommands.addLast(new QueuedIgnoreCommand(trimmed, action));
         boolean ignoredChanged = setIgnored(trimmed, action.isIgnoredState());
@@ -402,7 +376,6 @@ public class IgnoreFeature extends Feature {
         if (isDisabled() || queuedCommands.isEmpty()) {
             return;
         }
-
         QueuedIgnoreCommand command = queuedCommands.removeFirst();
         sendIgnoreCommand(command.playerName(), command.action());
     }
@@ -416,7 +389,7 @@ public class IgnoreFeature extends Feature {
         List<String> saved = sortedNames(cleanNames(NyahConfig.getData().getIgnoredPlayers()));
         ignoredPlayers.clear();
         for (String playerName : saved) {
-            ignoredPlayers.add(normalize(playerName));
+            ignoredPlayers.add(normalise(playerName));
         }
         if (!current.equals(saved)) {
             replaceSavedIgnoredPlayers(saved);
@@ -449,7 +422,7 @@ public class IgnoreFeature extends Feature {
 
     private void removeName(List<String> names, String playerName) {
         if (names != null) {
-            names.removeIf(name -> normalize(name).equals(normalize(playerName)));
+            names.removeIf(name -> normalise(name).equals(normalise(playerName)));
         }
     }
 
@@ -461,7 +434,7 @@ public class IgnoreFeature extends Feature {
                     continue;
                 }
                 String trimmed = name.trim();
-                uniqueNames.putIfAbsent(normalize(trimmed), trimmed);
+                uniqueNames.putIfAbsent(normalise(trimmed), trimmed);
             }
         }
         return new ArrayList<>(uniqueNames.values());
@@ -477,7 +450,7 @@ public class IgnoreFeature extends Feature {
         Map<String, String> names = new LinkedHashMap<>();
         listedPlayers().stream()
                 .filter(IgnorePlayerEntry::ignored)
-                .forEach(entry -> names.putIfAbsent(normalize(entry.playerName()), entry.playerName()));
+                .forEach(entry -> names.putIfAbsent(normalise(entry.playerName()), entry.playerName()));
         ignoredPlayers.forEach(name -> names.putIfAbsent(name, name));
         return new ArrayList<>(names.values());
     }
@@ -486,8 +459,8 @@ public class IgnoreFeature extends Feature {
         if (names == null) {
             return false;
         }
-        String normalized = normalize(playerName);
-        return names.stream().anyMatch(name -> normalize(name).equals(normalized));
+        String normalised = normalise(playerName);
+        return names.stream().anyMatch(name -> normalise(name).equals(normalised));
     }
 
     public void openScreen() {
@@ -499,7 +472,6 @@ public class IgnoreFeature extends Feature {
         if (action == null) {
             return;
         }
-
         for (String playerName : playerNames) {
             queueAction(playerName, action);
         }
@@ -513,10 +485,7 @@ public class IgnoreFeature extends Feature {
         minecraft.getConnection().sendCommand("ignore " + action.getCommandAction() + " " + playerName);
     }
 
-    private String normalize(String playerName) {
+    private String normalise(String playerName) {
         return playerName == null ? "" : playerName.trim().toLowerCase(Locale.ROOT);
-    }
-
-    private record QueuedIgnoreCommand(String playerName, IgnoreAction action) {
     }
 }

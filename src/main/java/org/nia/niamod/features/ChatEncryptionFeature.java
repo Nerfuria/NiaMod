@@ -10,8 +10,6 @@ import org.nia.niamod.eventbus.NiaEventBus;
 import org.nia.niamod.eventbus.Subscribe;
 import org.nia.niamod.models.events.ChatModifyEvent;
 import org.nia.niamod.models.events.CommandSentEvent;
-import org.nia.niamod.models.misc.Feature;
-import org.nia.niamod.models.misc.Safe;
 
 import javax.crypto.AEADBadTagException;
 import javax.crypto.Cipher;
@@ -29,40 +27,33 @@ import java.util.Optional;
 
 @SuppressWarnings("unused")
 public class ChatEncryptionFeature extends Feature {
-
     private static final int AAD_VALUE = 67;
     private static final int GCM_TAG_LENGTH = 128;
     private static final int GCM_NONCE_LENGTH = 12;
     private static final int GCM_TAG_LENGTH_BYTES = GCM_TAG_LENGTH / 8;
     private static final String CIPHER_ALGO = "AES/GCM/NoPadding";
     private static final String KEY_ALGO = "AES";
-    private static final String HASH_ALGO = "SHA-256";
+    private static final String KEY_DERIVATION_ALGO = "PBKDF2WithHmacSHA256";
     private static final String MSG_START = "£\uDB8D\uDE37-";
     private static final String MSG_END = "-\uDB8D\uDE37$";
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private static String encode(byte[] bytes) {
         StringBuilder builder = new StringBuilder(bytes.length / 2 + bytes.length % 2);
-
         for (int i = 0; i < bytes.length - 1; i += 2) {
             int b1 = bytes[i] & 0xFF;
             int b2 = bytes[i + 1] & 0xFF;
-            int codePoint = (b1 == 255 && b2 >= 254)
-                    ? 1048576 + (b2 - 254)
-                    : 983040 + (b1 << 8 | b2);
+            int codePoint = (b1 == 255 && b2 >= 254) ? 1048576 + (b2 - 254) : 983040 + (b1 << 8 | b2);
             builder.appendCodePoint(codePoint);
         }
-
         if (bytes.length % 2 == 1) {
             builder.appendCodePoint(1048576 + ((bytes[bytes.length - 1] & 0xFF) << 8) + 238);
         }
-
         return builder.toString();
     }
 
     private static byte[] decode(String string) {
         List<Byte> byteList = new ArrayList<>();
-
         for (int cp : string.codePoints().toArray()) {
             if (cp >= 1048576) {
                 if ((cp & 255) == 238) {
@@ -77,17 +68,17 @@ public class ChatEncryptionFeature extends Feature {
                 byteList.add((byte) (val & 0xFF));
             }
         }
-
         byte[] result = new byte[byteList.size()];
-        for (int i = 0; i < byteList.size(); i++) result[i] = byteList.get(i);
+        for (int i = 0; i < byteList.size(); i++) {
+            result[i] = byteList.get(i);
+        }
         return result;
     }
 
     @Override
-    @Safe
     public void init() {
-        ClientSendMessageEvents.MODIFY_CHAT.register(message ->
-                callSafe("processMessage", () -> processMessage(message), message));
+        ClientSendMessageEvents.MODIFY_CHAT.register(
+                message -> callSafe("processMessage", () -> processMessage(message), message));
         NiaEventBus.subscribe(this);
     }
 
@@ -95,9 +86,8 @@ public class ChatEncryptionFeature extends Feature {
         try {
             String password = NyahConfig.getData().getEncryptionKey();
             byte[] salt = new byte[16];
-            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
             KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 100000, 256);
-            return factory.generateSecret(spec).getEncoded();
+            return SecretKeyFactory.getInstance(KEY_DERIVATION_ALGO).generateSecret(spec).getEncoded();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -125,8 +115,9 @@ public class ChatEncryptionFeature extends Feature {
         try {
             byte[] iv = new byte[GCM_NONCE_LENGTH];
             SECURE_RANDOM.nextBytes(iv);
-            Cipher cipher = initCipher(Cipher.ENCRYPT_MODE, iv);
-            byte[] encrypted = cipher.doFinal(message.trim().getBytes());
+            byte[] encrypted =
+                    initCipher(Cipher.ENCRYPT_MODE, iv)
+                            .doFinal(message.trim().getBytes(StandardCharsets.UTF_8));
             return MSG_START + encode(iv) + encode(encrypted) + MSG_END;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -140,8 +131,9 @@ public class ChatEncryptionFeature extends Feature {
                 return message;
             }
             byte[] iv = java.util.Arrays.copyOfRange(bytes, 0, GCM_NONCE_LENGTH);
-            Cipher cipher = initCipher(Cipher.DECRYPT_MODE, iv);
-            byte[] decrypted = cipher.doFinal(bytes, GCM_NONCE_LENGTH, bytes.length - GCM_NONCE_LENGTH);
+            byte[] decrypted =
+                    initCipher(Cipher.DECRYPT_MODE, iv)
+                            .doFinal(bytes, GCM_NONCE_LENGTH, bytes.length - GCM_NONCE_LENGTH);
             return new String(decrypted, StandardCharsets.UTF_8);
         } catch (AEADBadTagException e) {
             throw e;
@@ -150,11 +142,12 @@ public class ChatEncryptionFeature extends Feature {
         }
     }
 
-    @Safe(ordinal = 0)
     public String processMessage(String message) {
         String prefix = NyahConfig.getData().getEncryptionPrefix();
         int idx = message.indexOf(prefix);
-        if (idx == -1) return message;
+        if (idx == -1) {
+            return message;
+        }
         return message.substring(0, idx) + encryptMessage(message.substring(idx + prefix.length()));
     }
 
@@ -166,7 +159,9 @@ public class ChatEncryptionFeature extends Feature {
     public String decodeMessage(String message) {
         int start = message.indexOf(MSG_START);
         int end = message.indexOf(MSG_END);
-        if (start == -1 || end == -1) return message;
+        if (start == -1 || end == -1) {
+            return message;
+        }
         try {
             return decrypt(message.substring(start + MSG_START.length(), end));
         } catch (AEADBadTagException e) {
@@ -175,22 +170,26 @@ public class ChatEncryptionFeature extends Feature {
     }
 
     @Subscribe
-    @Safe
     public void modifyChat(ChatModifyEvent event) {
         Component text = event.getMessage();
         MutableComponent copy = Component.empty();
-        text.visit((style, string) -> {
-            String decoded = decodeMessage(string);
-            if (!decoded.equals(string)) {
-                copy.append(Component.literal(string.substring(0, string.indexOf(MSG_START))).withStyle(style));
-                style = style
-                        .withHoverEvent(new HoverEvent.ShowText(Component.nullToEmpty("This message was encoded with NiaMod")))
-                        .withUnderlined(true);
-            }
-            copy.append(Component.literal(decoded).withStyle(style));
-            return Optional.empty();
-        }, Style.EMPTY);
-
+        text.visit(
+                (style, string) -> {
+                    String decoded = decodeMessage(string);
+                    if (!decoded.equals(string)) {
+                        copy.append(
+                                Component.literal(string.substring(0, string.indexOf(MSG_START))).withStyle(style));
+                        style =
+                                style
+                                        .withHoverEvent(
+                                                new HoverEvent.ShowText(
+                                                        Component.nullToEmpty("This message was encoded with NiaMod")))
+                                        .withUnderlined(true);
+                    }
+                    copy.append(Component.literal(decoded).withStyle(style));
+                    return Optional.empty();
+                },
+                Style.EMPTY);
         event.setMessage(copy);
     }
 }

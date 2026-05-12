@@ -2,7 +2,10 @@ package org.nia.niamod.mixin;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
-import org.nia.niamod.models.gui.render.GuiGraphicsScissorState;
+import net.minecraft.world.item.ItemStack;
+import org.nia.niamod.eventbus.NiaEventBus;
+import org.nia.niamod.gui.render.GuiGraphicsScissorState;
+import org.nia.niamod.models.events.SlotRenderEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -35,6 +38,11 @@ public abstract class GuiGraphicsMixin implements GuiGraphicsScissorState {
         if (!niamod$scissorAreas.isEmpty()) {
             niamod$scissorAreas.removeLast();
         }
+    }
+
+    @Inject(method = "renderItem(Lnet/minecraft/world/item/ItemStack;III)V", at = @At("HEAD"))
+    private void niamod$refreshConsumableModel(ItemStack stack, int x, int y, int seed, CallbackInfo ci) {
+        NiaEventBus.dispatch(new SlotRenderEvent((GuiGraphics) (Object) this, stack, x, y));
     }
 
     @Override

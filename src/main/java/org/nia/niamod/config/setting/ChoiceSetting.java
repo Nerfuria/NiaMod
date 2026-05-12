@@ -1,7 +1,6 @@
 package org.nia.niamod.config.setting;
 
 import lombok.Getter;
-import org.nia.niamod.models.config.SettingKind;
 
 import java.util.List;
 import java.util.Locale;
@@ -10,7 +9,7 @@ import java.util.function.Supplier;
 
 @Getter
 public class ChoiceSetting extends ConfigSetting<String> {
-    private final List<String> options;
+    private final Supplier<List<String>> optionsSupplier;
     private final Function<String, String> labelResolver;
 
     public ChoiceSetting(
@@ -22,9 +21,25 @@ public class ChoiceSetting extends ConfigSetting<String> {
             List<String> options,
             Function<String, String> labelResolver
     ) {
+        this(id, title, description, getter, setter, () -> options, labelResolver);
+    }
+
+    public ChoiceSetting(
+            String id,
+            String title,
+            String description,
+            Supplier<String> getter,
+            java.util.function.Consumer<String> setter,
+            Supplier<List<String>> optionsSupplier,
+            Function<String, String> labelResolver
+    ) {
         super(id, title, description, SettingKind.CHOICE, getter, setter);
-        this.options = List.copyOf(options);
+        this.optionsSupplier = optionsSupplier;
         this.labelResolver = labelResolver;
+    }
+
+    public List<String> getOptions() {
+        return List.copyOf(optionsSupplier.get());
     }
 
     @Override
@@ -56,6 +71,7 @@ public class ChoiceSetting extends ConfigSetting<String> {
     }
 
     private void cycle(int direction) {
+        List<String> options = getOptions();
         if (options.isEmpty()) {
             return;
         }
@@ -70,13 +86,14 @@ public class ChoiceSetting extends ConfigSetting<String> {
     }
 
     private String resolveOption(String rawValue) {
+        List<String> options = getOptions();
         if (rawValue == null || rawValue.isBlank()) {
             return options.isEmpty() ? null : options.getFirst();
         }
 
-        String normalized = normalize(rawValue);
+        String normalised = normalise(rawValue);
         for (String option : options) {
-            if (normalize(option).equals(normalized) || normalize(displayValue(option)).equals(normalized)) {
+            if (normalise(option).equals(normalised) || normalise(displayValue(option)).equals(normalised)) {
                 return option;
             }
         }
@@ -84,7 +101,7 @@ public class ChoiceSetting extends ConfigSetting<String> {
         return null;
     }
 
-    private String normalize(String value) {
+    private String normalise(String value) {
         return value.trim()
                 .toLowerCase(Locale.ROOT)
                 .replace(' ', '_')

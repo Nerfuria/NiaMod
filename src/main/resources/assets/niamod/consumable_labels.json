@@ -1,0 +1,177 @@
+[
+  {
+    "ids": [
+      "damage"
+    ],
+    "alias": "DMG%"
+  },
+  {
+    "ids": [
+      "manaRegen"
+    ],
+    "alias": "MR",
+    "texture": "mana_regen"
+  },
+  {
+    "ids": [
+      "manaSteal"
+    ],
+    "alias": "MS",
+    "texture": "mana_steal"
+  },
+  {
+    "ids": [
+      "rawHealth"
+    ],
+    "alias": "HP",
+    "texture": "health"
+  },
+  {
+    "ids": [
+      "healingEfficiency"
+    ],
+    "alias": "HE%",
+    "texture": "healing_efficiency"
+  },
+  {
+    "ids": [
+      "rawSpellDamage"
+    ],
+    "alias": "SD",
+    "texture": "spell_damage"
+  },
+  {
+    "ids": [
+      "maxMana"
+    ],
+    "alias": "MM",
+    "texture": "max_mana"
+  },
+  {
+    "ids": [
+      "rawStrength",
+      "rawDexterity",
+      "rawIntelligence",
+      "rawAgility",
+      "rawDefence"
+    ],
+    "minCount": 3,
+    "alias": "SP",
+    "texture": "skill_points"
+  },
+  {
+    "ids": [
+      "rawStrength"
+    ],
+    "alias": "STR",
+    "texture": "strength"
+  },
+  {
+    "ids": [
+      "rawDexterity"
+    ],
+    "alias": "DEX",
+    "texture": "dexterity"
+  },
+  {
+    "ids": [
+      "rawIntelligence"
+    ],
+    "alias": "INT",
+    "texture": "intelligence"
+  },
+  {
+    "ids": [
+      "rawAgility"
+    ],
+    "alias": "AGI",
+    "texture": "agility"
+  },
+  {
+    "ids": [
+      "rawDefence"
+    ],
+    "alias": "DEF",
+    "texture": "defence"
+  },
+  {
+    "ids": [
+      "jumpHeight"
+    ],
+    "alias": "JH",
+    "texture": "jump_height"
+  },
+  {
+    "ids": [
+      "rawAttackSpeed"
+    ],
+    "alias": "ATK",
+    "texture": "attack_speed"
+  },
+  {
+    "ids": [
+      "spellDamage"
+    ],
+    "alias": "SD%",
+    "texture": "spell_damage_percent"
+  },
+  {
+    "ids": [
+      "thunderDamage",
+      "waterDamage",
+      "earthDamage",
+      "fireDamage",
+      "airDamage"
+    ],
+    "minCount": 3,
+    "alias": "RGB%",
+    "texture": "rainbow_damage"
+  },
+  {
+    "ids": [
+      "thunderDamage"
+    ],
+    "alias": "TD%",
+    "texture": "thunder_damage"
+  },
+  {
+    "ids": [
+      "waterDamage"
+    ],
+    "alias": "WD%",
+    "texture": "water_damage"
+  },
+  {
+    "ids": [
+      "earthDamage"
+    ],
+    "alias": "ED%",
+    "texture": "earth_damage"
+  },
+  {
+    "ids": [
+      "fireDamage"
+    ],
+    "alias": "FD%"
+  },
+  {
+    "ids": [
+      "airDamage"
+    ],
+    "alias": "AD%"
+  },
+  {
+    "ids": [
+      "elementalDamage"
+    ],
+    "alias": "ELE%",
+    "texture": "elemental_damage"
+  },
+  {
+    "ids": [
+      "walkSpeed"
+    ],
+    "alias": "WS",
+    "texture": "walk_speed"
+  }
+]

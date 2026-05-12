@@ -7,13 +7,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import org.lwjgl.glfw.GLFW;
 import org.nia.niamod.NiamodClient;
+import org.nia.niamod.config.choices.SettingCategory;
 import org.nia.niamod.config.setting.SettingSection;
+import org.nia.niamod.features.Feature;
+import org.nia.niamod.gui.screen.ConfigScreen;
+import org.nia.niamod.gui.theme.FontOption;
+import org.nia.niamod.gui.theme.ThemeOption;
 import org.nia.niamod.managers.FeatureManager;
 import org.nia.niamod.managers.KeybindManager;
-import org.nia.niamod.models.config.SettingCategory;
-import org.nia.niamod.render.NiaClickGuiScreen;
-import org.nia.niamod.models.gui.theme.ClickGuiFontOption;
-import org.nia.niamod.models.gui.theme.ClickGuiThemeOption;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -45,7 +46,7 @@ public class NyahConfig {
 
     public static void reset() {
         data = new NyahConfigData();
-        data.normalize();
+        data.normalise();
         save();
         applyFeatureStates();
     }
@@ -55,7 +56,7 @@ public class NyahConfig {
     }
 
     public static Screen getConfigScreen(Screen currentScreen) {
-        return new NiaClickGuiScreen(currentScreen);
+        return new ConfigScreen(currentScreen);
     }
 
     public static List<SettingSection> getSections(SettingCategory category) {
@@ -64,12 +65,12 @@ public class NyahConfig {
                 .toList();
     }
 
-    public static ClickGuiThemeOption getClickGuiThemeOption() {
-        return ClickGuiThemeOption.resolve(getData().getClickGuiTheme());
+    public static ThemeOption getClickGuiThemeOption() {
+        return ThemeOption.resolve(getData().getClickGuiTheme());
     }
 
-    public static ClickGuiFontOption getClickGuiFontOption() {
-        return ClickGuiFontOption.resolve(getData().getClickGuiFont());
+    public static FontOption getClickGuiFontOption() {
+        return FontOption.resolve(getData().getClickGuiFont());
     }
 
     public static void save() {
@@ -85,39 +86,27 @@ public class NyahConfig {
 
     public static void applyFeatureStates() {
         NyahConfigData config = getData();
-        if (FeatureManager.getResTickFeature() != null) {
-            FeatureManager.getResTickFeature().setEnabled(config.isResourceTickFeatureEnabled());
-        }
-        if (FeatureManager.getChatEncryptionFeature() != null) {
-            FeatureManager.getChatEncryptionFeature().setEnabled(config.isChatEncryptionFeatureEnabled());
-        }
-        if (FeatureManager.getWarTimersFeature() != null) {
-            FeatureManager.getWarTimersFeature().setEnabled(config.isWarTimersFeatureEnabled());
-        }
-        if (FeatureManager.getWarTowerEHPFeature() != null) {
-            FeatureManager.getWarTowerEHPFeature().setEnabled(config.isWarTowerEhpFeatureEnabled());
-        }
-        if (FeatureManager.getConsuTextFeature() != null) {
-            FeatureManager.getConsuTextFeature().setEnabled(config.isConsuTextFeatureEnabled());
-        }
-        if (FeatureManager.getShoutFilterFeature() != null) {
-            FeatureManager.getShoutFilterFeature().setEnabled(config.isShoutFilterFeatureEnabled());
-        }
-        if (FeatureManager.getViewModelTransformationFeature() != null) {
-            FeatureManager.getViewModelTransformationFeature().setEnabled(config.isViewModelFeatureEnabled());
-        }
-        if (FeatureManager.getRadianceSyncFeature() != null) {
-            FeatureManager.getRadianceSyncFeature().setEnabled(config.isRadianceSyncEnabled());
-        }
-        if (FeatureManager.getAutoStreamFeature() != null) {
-            FeatureManager.getAutoStreamFeature().setEnabled(config.isAutoStreamFeatureEnabled());
+        applyEnabledState(FeatureManager.getResTickFeature(), config.isResourceTickFeatureEnabled());
+        applyEnabledState(FeatureManager.getChatEncryptionFeature(), config.isChatEncryptionFeatureEnabled());
+        applyEnabledState(FeatureManager.getWarTimersFeature(), config.isWarTimersFeatureEnabled());
+        applyEnabledState(FeatureManager.getWarTowerEHPFeature(), config.isWarTowerEhpFeatureEnabled());
+        applyEnabledState(FeatureManager.getConsuTextFeature(), config.isConsuTextFeatureEnabled());
+        applyEnabledState(FeatureManager.getShoutFilterFeature(), config.isShoutFilterFeatureEnabled());
+        applyEnabledState(FeatureManager.getViewModelTransformationFeature(), config.isViewModelFeatureEnabled());
+        applyEnabledState(FeatureManager.getRadianceSyncFeature(), config.isRadianceSyncEnabled());
+        applyEnabledState(FeatureManager.getAutoStreamFeature(), config.isAutoStreamFeatureEnabled());
+    }
+
+    private static void applyEnabledState(Feature feature, boolean enabled) {
+        if (feature != null) {
+            feature.setEnabled(enabled);
         }
     }
 
     private static void loadConfig() {
         if (!Files.exists(configFile())) {
             data = new NyahConfigData();
-            data.normalize();
+            data.normalise();
             save();
             return;
         }
@@ -132,7 +121,7 @@ public class NyahConfig {
         if (data == null) {
             data = new NyahConfigData();
         }
-        data.normalize();
+        data.normalise();
     }
 
     private static Minecraft minecraft() {

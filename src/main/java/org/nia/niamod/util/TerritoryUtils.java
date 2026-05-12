@@ -7,19 +7,20 @@ import com.wynntils.models.territories.type.GuildResourceValues;
 import com.wynntils.models.territories.type.TerritoryUpgrade;
 import com.wynntils.utils.type.CappedValue;
 import com.wynntils.utils.type.Pair;
+import lombok.experimental.UtilityClass;
 import org.nia.niamod.managers.FeatureManager;
-import org.nia.niamod.managers.TerritoryBaseLoader;
+import org.nia.niamod.managers.TerritoryBaseManager;
+import org.nia.niamod.models.records.TerritoryCombatStats;
+import org.nia.niamod.models.records.TerritoryInfoDepth;
 
-import java.util.ArrayDeque;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
+@UtilityClass
 public class TerritoryUtils {
     public static final GuildResource[] RESOURCES = GuildResource.values();
 
-    public static int resStorageCapToLevel(int res_storage_max) {
-        return switch (res_storage_max) {
+    public static int resStorageCapToLevel(int maxResourceStorage) {
+        return switch (maxResourceStorage) {
             case 300 -> 0;
             case 600 -> 1;
             case 1200 -> 2;
@@ -67,11 +68,8 @@ public class TerritoryUtils {
         return -1;
     }
 
-    /**
-     * Get the resource cost of a territory.
-     **/
     public static int getResCost(TerritoryInfo territoryInfo, GuildResource resource) {
-        int mapTick = FeatureManager.getResTickFeature().getMapTick();
+        int mapTick = getMapTick();
         if (mapTick <= 0)
             return 0;
 
@@ -84,9 +82,14 @@ public class TerritoryUtils {
         return (storage.current() * 60 * 60 - (prod * mapTick)) / (60 - mapTick);
     }
 
-    /**
-     * Get the distance of a territory from its HQ using BFS.
-     */
+    public static int getMapTick() {
+        if (FeatureManager.getResTickFeature() == null) {
+            return -1;
+        }
+
+        return FeatureManager.getResTickFeature().getMapTick();
+    }
+
     public static int getHQDistance(String territoryName) {
         TerritoryInfo startTerr = Models.Territory.getTerritoryPoiFromAdvancement(territoryName).getTerritoryInfo();
         String guild = startTerr.getGuildName();
@@ -125,9 +128,6 @@ public class TerritoryUtils {
         return Integer.MAX_VALUE;
     }
 
-    /**
-     * Get the treasury bonus of a territory (dependent on treasury level and distance to HQ).
-     */
     public static double getTreasuryBonus(String territoryName) {
         TerritoryInfo territory = Models.Territory.getTerritoryPoiFromAdvancement(territoryName).getTerritoryInfo();
         GuildResourceValues level = territory.getTreasury();
@@ -155,15 +155,100 @@ public class TerritoryUtils {
         return tresValue * distanceModifier;
     }
 
-    /**
-     * Get the resource production modifier of a territory for a specified resource (includes treasury bonus).
-     */
     public static double getProductionModifier(String territoryName, GuildResource resource) {
-        int baseProd = TerritoryBaseLoader.getTerritory(territoryName).getProduction(resource);
+        int baseProd = TerritoryBaseManager.getTerritory(territoryName).getProduction(resource);
         TerritoryInfo territoryInfo = Models.Territory.getTerritoryPoiFromAdvancement(territoryName).getTerritoryInfo();
         int currProd = territoryInfo.getGeneration(resource);
         if (baseProd == 0)
             return 0;
         return ((double) currProd) / baseProd;
     }
+
+    public static TerritoryInfo territoryInfo(String territoryName) {
+        var poi = Models.Territory.getTerritoryPoiFromAdvancement(territoryName);
+        return poi == null ? null : poi.getTerritoryInfo();
+    }
+
+    public static TerritoryCombatStats estimateStats(Map<TerritoryUpgrade, Integer> upgrades, TerritoryInfo info) {
+        int directConnections = ownedConnections(info);
+        int externalConnections = info.isHeadquarters() ? ownedExternalConnections(info) : 0;
+        double multiplier = territoryMultiplier(directConnections, externalConnections, info.isHeadquarters());
+
+        double damageMultiplier = upgradeMultiplier(upgrades, TerritoryUpgrade.DAMAGE);
+        double minDamage = 1000.0 * damageMultiplier * multiplier;
+        double maxDamage = 1500.0 * damageMultiplier * multiplier;
+        double attackSpeed = 0.5 * upgradeMultiplier(upgrades, TerritoryUpgrade.ATTACK);
+        double health = 300000.0 * upgradeMultiplier(upgrades, TerritoryUpgrade.HEALTH) * multiplier;
+        double defence = 0.1 * upgradeMultiplier(upgrades, TerritoryUpgrade.DEFENCE);
+        double averageDamage = (minDamage + maxDamage) / 2.0;
+        double averageDps = averageDamage * attackSpeed;
+        double ehp = defence >= 1.0 ? Double.POSITIVE_INFINITY : health / (1.0 - defence);
+
+        return new TerritoryCombatStats(minDamage, maxDamage, attackSpeed, health, defence, averageDps, ehp);
+    }
+
+    private static double territoryMultiplier(int directConnections, int externalConnections, boolean headquarters) {
+        double connectionMultiplier = 1.0 + (0.3 * directConnections);
+        if (!headquarters) {
+            return connectionMultiplier;
+        }
+
+        return (1.5 + (0.25 * externalConnections)) * connectionMultiplier;
+    }
+
+    private static double upgradeMultiplier(Map<TerritoryUpgrade, Integer> upgrades, TerritoryUpgrade upgrade) {
+        int level = upgrades == null ? 0 : upgrades.getOrDefault(upgrade, 0);
+        TerritoryUpgrade.Level[] levels = upgrade.getLevels();
+        int clampedLevel = Math.max(0, Math.min(level, levels.length - 1));
+        return 1.0 + levels[clampedLevel].bonus() / 100.0;
+    }
+
+    private static int ownedConnections(TerritoryInfo info) {
+        String guild = info.getGuildName();
+        if (guild == null) {
+            return 0;
+        }
+
+        int count = 0;
+        for (String connection : info.getTradingRoutes()) {
+            TerritoryInfo connected = territoryInfo(connection);
+            if (connected != null && guild.equals(connected.getGuildName())) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private static int ownedExternalConnections(TerritoryInfo info) {
+        String guild = info.getGuildName();
+        if (guild == null) {
+            return 0;
+        }
+
+        Set<TerritoryInfo> visited = Collections.newSetFromMap(new IdentityHashMap<>());
+        ArrayDeque<TerritoryInfoDepth> queue = new ArrayDeque<>();
+        visited.add(info);
+        queue.addLast(new TerritoryInfoDepth(info, 0));
+
+        int count = 0;
+        while (!queue.isEmpty()) {
+            TerritoryInfoDepth current = queue.removeFirst();
+            if (current.depth() >= 3) {
+                continue;
+            }
+
+            for (String connection : current.info().getTradingRoutes()) {
+                TerritoryInfo connected = territoryInfo(connection);
+                if (connected == null || !guild.equals(connected.getGuildName()) || !visited.add(connected)) {
+                    continue;
+                }
+
+                count++;
+                queue.addLast(new TerritoryInfoDepth(connected, current.depth() + 1));
+            }
+        }
+
+        return count;
+    }
+
 }

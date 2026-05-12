@@ -6,8 +6,8 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.Identifier;
-import org.nia.niamod.render.OverlayManagerScreen;
-import org.nia.niamod.models.gui.render.TextOverlay;
+import org.nia.niamod.gui.screen.OverlayManagerScreen;
+import org.nia.niamod.models.render.TextOverlay;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.List;
 @UtilityClass
 public class OverlayManager {
 
-    private final List<TextOverlay> textOverlays = new ArrayList<>();
+    private static final List<TextOverlay> TEXT_OVERLAYS = new ArrayList<>();
 
     public static void init() {
         HudElementRegistry.addLast(Identifier.fromNamespaceAndPath("niamod", "overlays"),
@@ -23,7 +23,7 @@ public class OverlayManager {
     }
 
     public static void openConfig() {
-        openConfig(textOverlays);
+        openConfig(TEXT_OVERLAYS);
     }
 
     public static void openConfig(List<? extends TextOverlay> overlays) {
@@ -33,7 +33,7 @@ public class OverlayManager {
     }
 
     public static void registerOverlay(TextOverlay overlay) {
-        textOverlays.add(overlay);
+        TEXT_OVERLAYS.add(overlay);
     }
 
     private static void onHudRender(GuiGraphics drawContext, DeltaTracker tickCounter) {
@@ -42,7 +42,7 @@ public class OverlayManager {
         }
         int centreX = Minecraft.getInstance().getWindow().getGuiScaledWidth() / 2;
         int centreY = Minecraft.getInstance().getWindow().getGuiScaledHeight() / 2;
-        textOverlays.forEach(overlay -> {
+        TEXT_OVERLAYS.forEach(overlay -> {
             if (!overlay.isEnabled()) return;
             drawContext.pose().pushMatrix();
             drawContext.pose().translate(centreX, centreY);

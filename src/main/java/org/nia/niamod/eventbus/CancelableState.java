@@ -1,12 +1,12 @@
 package org.nia.niamod.eventbus;
 
+import lombok.experimental.UtilityClass;
+
 import java.util.concurrent.ConcurrentHashMap;
 
-final class CancelableState {
+@UtilityClass
+class CancelableState {
     private static final ConcurrentHashMap<Cancelable, Boolean> CANCELED_STATE = new ConcurrentHashMap<>();
-
-    private CancelableState() {
-    }
 
     static void cancel(Cancelable cancelable) {
         CANCELED_STATE.putIfAbsent(cancelable, true);

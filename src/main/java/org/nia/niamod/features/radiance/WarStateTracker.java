@@ -17,15 +17,15 @@ public class WarStateTracker {
 
     private boolean inWar;
 
-    private static String normalizeLine(String line) {
-        String normalized = line;
-        normalized = normalized.replaceAll("(?i)§[0-9a-fk-or]", "");
-        normalized = normalized.replaceAll("(?i)&[0-9a-fk-or]", "");
-        normalized = normalized.replaceAll("&\\{[^}]*}", "");
-        normalized = normalized.replaceAll("&\\[[^]]*]", "");
-        normalized = normalized.replaceAll("&<[^>]*>", "");
-        normalized = normalized.replaceAll("\\s+", " ").trim();
-        return normalized;
+    private static String normaliseLine(String line) {
+        String normalised = line;
+        normalised = normalised.replaceAll("(?i)§[0-9a-fk-or]", "");
+        normalised = normalised.replaceAll("(?i)&[0-9a-fk-or]", "");
+        normalised = normalised.replaceAll("&\\{[^}]*}", "");
+        normalised = normalised.replaceAll("&\\[[^]]*]", "");
+        normalised = normalised.replaceAll("&<[^>]*>", "");
+        normalised = normalised.replaceAll("\\s+", " ").trim();
+        return normalised;
     }
 
     public void reset() {
@@ -42,15 +42,15 @@ public class WarStateTracker {
     }
 
     private void handleLine(String line) {
-        String normalized = normalizeLine(line);
-        if (normalized.isBlank()) {
+        String normalised = normaliseLine(line);
+        if (normalised.isBlank()) {
             return;
         }
-        if (WAR_START_PATTERN.matcher(normalized).find()) {
+        if (WAR_START_PATTERN.matcher(normalised).find()) {
             inWar = true;
-        } else if (WAR_END_PATTERN.matcher(normalized).find()
-                || WAR_DEATH_PATTERN.matcher(normalized).find()
-                || normalized.contains(SERVER_CONNECT_MARKER)) {
+        } else if (WAR_END_PATTERN.matcher(normalised).find()
+                || WAR_DEATH_PATTERN.matcher(normalised).find()
+                || normalised.contains(SERVER_CONNECT_MARKER)) {
             inWar = false;
         }
     }

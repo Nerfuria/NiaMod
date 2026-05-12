@@ -29,7 +29,7 @@ public record TerritoryBase(
 
         List<String> connections = GSON.fromJson(
                 obj.get("connections"),
-                new TypeToken<List<String>>() {}.getType()
+                TypeToken.getParameterized(List.class, String.class).getType()
         );
 
         return new TerritoryBase(

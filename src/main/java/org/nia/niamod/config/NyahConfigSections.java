@@ -1,24 +1,17 @@
 package org.nia.niamod.config;
 
 import lombok.experimental.UtilityClass;
-import org.nia.niamod.config.setting.BooleanSetting;
-import org.nia.niamod.config.setting.ButtonSetting;
-import org.nia.niamod.config.setting.ChoiceSetting;
-import org.nia.niamod.config.setting.ColorSetting;
-import org.nia.niamod.config.setting.ConfigSetting;
-import org.nia.niamod.config.setting.FloatSetting;
-import org.nia.niamod.config.setting.IntSetting;
-import org.nia.niamod.config.setting.SettingSection;
-import org.nia.niamod.config.setting.StringSetting;
+import org.nia.niamod.config.choices.GuiAnimationMode;
+import org.nia.niamod.config.choices.RadianceOverlayMode;
+import org.nia.niamod.config.choices.SettingCategory;
+import org.nia.niamod.config.choices.ShoutReplacement;
+import org.nia.niamod.config.setting.*;
+import org.nia.niamod.features.ConsuTextFeature;
+import org.nia.niamod.gui.theme.FontOption;
+import org.nia.niamod.gui.theme.GuiTheme;
+import org.nia.niamod.gui.theme.ThemeOption;
 import org.nia.niamod.managers.FeatureManager;
 import org.nia.niamod.managers.OverlayManager;
-import org.nia.niamod.models.config.ClickGuiAnimationMode;
-import org.nia.niamod.models.config.RadianceOverlayMode;
-import org.nia.niamod.models.config.SettingCategory;
-import org.nia.niamod.models.config.ShoutReplacement;
-import org.nia.niamod.models.gui.theme.ClickGuiFontOption;
-import org.nia.niamod.models.gui.theme.ClickGuiTheme;
-import org.nia.niamod.models.gui.theme.ClickGuiThemeOption;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 @UtilityClass
 final class NyahConfigSections {
@@ -96,9 +90,9 @@ final class NyahConfigSections {
                 null,
                 null,
                 List.of(
-                        choice("click_gui_theme", "GUI Theme", "Color scheme for the Click GUI.", NyahConfigData::getClickGuiTheme, NyahConfigSections::setClickGuiTheme, ClickGuiThemeOption.keys(), ClickGuiThemeOption::labelFor),
-                        choice("click_gui_font", "GUI Font", "Font used in the Click GUI.", NyahConfigData::getClickGuiFont, NyahConfigData::setClickGuiFont, ClickGuiFontOption.keys(), ClickGuiFontOption::labelFor),
-                        choice("click_gui_animation", "GUI Animation", "Opening and closing effect for the Click GUI.", NyahConfigData::getClickGuiAnimation, NyahConfigData::setClickGuiAnimation, ClickGuiAnimationMode.class),
+                        choice("click_gui_theme", "GUI Theme", "Color scheme for the Click GUI.", NyahConfigData::getClickGuiTheme, NyahConfigSections::setClickGuiTheme, ThemeOption.keys(), ThemeOption::labelFor),
+                        choice("click_gui_font", "GUI Font", "Font used in the Click GUI.", NyahConfigData::getClickGuiFont, NyahConfigData::setClickGuiFont, FontOption.keys(), FontOption::labelFor),
+                        choice("click_gui_animation", "GUI Animation", "Opening and closing effect for the Click GUI.", NyahConfigData::getClickGuiAnimation, NyahConfigData::setClickGuiAnimation, GuiAnimationMode.class),
                         integer("animation_time", "Animation Time", "Time for config animation.", 100, 2000, NyahConfigData::getAnimationTime, NyahConfigData::setAnimationTime),
                         floating("gui_opacity", "GUI Opacity", "Overall background transparency.", 0.1f, 1.0f, NyahConfigData::getGuiOpacity, NyahConfigData::setGuiOpacity),
                         color("custom_gui_background", "Custom Background", "Background color for the Custom theme.", NyahConfigSections::getVisibleCustomGuiBackground, NyahConfigSections::setCustomGuiBackground),
@@ -201,8 +195,9 @@ final class NyahConfigSections {
                 "Compact crafted-consumable identifiers in inventories.",
                 category,
                 NyahConfigData::isConsuTextFeatureEnabled,
-                NyahConfigData::setConsuTextFeatureEnabled,
+                NyahConfigSections::setConsuTextFeatureEnabled,
                 List.of(
+                        choice("texture_category", "Texture Category", "Model texture pack for consumable item icons.", NyahConfigData::getConsumableTextureCategory, NyahConfigSections::setConsumableTextureCategory, ConsuTextFeature::textureCategoryOptions, ConsuTextFeature::textureCategoryLabel),
                         floating("label_scale", "Label Scale", "Overlay text scale.", 0.25f, 2.5f, NyahConfigData::getIdScale, NyahConfigData::setIdScale),
                         integer("label_x_offset", "Label X Offset", "Horizontal label offset.", -16, 16, NyahConfigData::getIdXOffset, NyahConfigData::setIdXOffset),
                         integer("label_y_offset", "Label Y Offset", "Vertical label offset.", -16, 16, NyahConfigData::getIdYOffset, NyahConfigData::setIdYOffset)
@@ -403,6 +398,29 @@ final class NyahConfigSections {
         );
     }
 
+    private static ChoiceSetting choice(
+            String id,
+            String title,
+            String description,
+            Function<NyahConfigData, String> getter,
+            BiConsumer<NyahConfigData, String> setter,
+            Supplier<List<String>> options,
+            Function<String, String> labelResolver
+    ) {
+        return new ChoiceSetting(
+                id,
+                title,
+                description,
+                () -> getter.apply(config()),
+                value -> {
+                    setter.accept(config(), value);
+                    NyahConfig.save();
+                },
+                options,
+                labelResolver
+        );
+    }
+
     private static <T> java.util.function.Consumer<T> persist(BiConsumer<NyahConfigData, T> setter) {
         return value -> {
             setter.accept(config(), value);
@@ -411,9 +429,19 @@ final class NyahConfigSections {
     }
 
     private static void setClickGuiTheme(NyahConfigData data, String value) {
-        ClickGuiThemeOption nextTheme = ClickGuiThemeOption.resolve(value);
+        ThemeOption nextTheme = ThemeOption.resolve(value);
         keepCustomTheme(data);
         data.setClickGuiTheme(nextTheme.getKey());
+    }
+
+    private static void setConsumableTextureCategory(NyahConfigData data, String value) {
+        data.setConsumableTextureCategory(ConsuTextFeature.resolveTextureCategory(value));
+        ConsuTextFeature.refreshLoadedItemModels();
+    }
+
+    private static void setConsuTextFeatureEnabled(NyahConfigData data, Boolean value) {
+        data.setConsuTextFeatureEnabled(value);
+        ConsuTextFeature.refreshLoadedItemModels();
     }
 
     private static void setCustomGuiBackground(NyahConfigData data, Integer value) {
@@ -434,32 +462,32 @@ final class NyahConfigSections {
             BiConsumer<NyahConfigData, Integer> setter,
             int value
     ) {
-        int normalizedValue = value & 0xFFFFFF;
+        int normalisedValue = value & 0xFFFFFF;
         int previousVisibleValue = visibleGetter.apply(data) & 0xFFFFFF;
-        if (NyahConfig.getClickGuiThemeOption() != ClickGuiThemeOption.CUSTOM && normalizedValue != previousVisibleValue) {
+        if (NyahConfig.getClickGuiThemeOption() != ThemeOption.CUSTOM && normalisedValue != previousVisibleValue) {
             copyThemeToCustom(data, NyahConfig.getClickGuiThemeOption().getTheme());
-            data.setClickGuiTheme(ClickGuiThemeOption.CUSTOM.getKey());
+            data.setClickGuiTheme(ThemeOption.CUSTOM.getKey());
         }
-        setter.accept(data, normalizedValue);
+        setter.accept(data, normalisedValue);
         NyahConfig.save();
     }
 
     private static int getVisibleCustomGuiBackground(NyahConfigData data) {
-        if (NyahConfig.getClickGuiThemeOption() == ClickGuiThemeOption.CUSTOM) {
+        if (NyahConfig.getClickGuiThemeOption() == ThemeOption.CUSTOM) {
             return data.getCustomGuiBackground() & 0xFFFFFF;
         }
         return NyahConfig.getClickGuiThemeOption().getTheme().background() & 0xFFFFFF;
     }
 
     private static int getVisibleCustomGuiSecondary(NyahConfigData data) {
-        if (NyahConfig.getClickGuiThemeOption() == ClickGuiThemeOption.CUSTOM) {
+        if (NyahConfig.getClickGuiThemeOption() == ThemeOption.CUSTOM) {
             return data.getCustomGuiSecondary() & 0xFFFFFF;
         }
         return NyahConfig.getClickGuiThemeOption().getTheme().secondary() & 0xFFFFFF;
     }
 
     private static int getVisibleCustomGuiAccent(NyahConfigData data) {
-        if (NyahConfig.getClickGuiThemeOption() == ClickGuiThemeOption.CUSTOM) {
+        if (NyahConfig.getClickGuiThemeOption() == ThemeOption.CUSTOM) {
             return data.getCustomGuiAccent() & 0xFFFFFF;
         }
         return NyahConfig.getClickGuiThemeOption().getTheme().accentColor() & 0xFFFFFF;
@@ -471,7 +499,7 @@ final class NyahConfigSections {
         data.setCustomGuiAccent(data.getCustomGuiAccent() & 0xFFFFFF);
     }
 
-    private static void copyThemeToCustom(NyahConfigData data, ClickGuiTheme theme) {
+    private static void copyThemeToCustom(NyahConfigData data, GuiTheme theme) {
         data.setCustomGuiBackground(theme.background() & 0xFFFFFF);
         data.setCustomGuiSecondary(theme.secondary() & 0xFFFFFF);
         data.setCustomGuiAccent(theme.accentColor() & 0xFFFFFF);

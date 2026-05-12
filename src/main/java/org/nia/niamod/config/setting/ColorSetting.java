@@ -1,7 +1,5 @@
 package org.nia.niamod.config.setting;
 
-import org.nia.niamod.models.config.SettingKind;
-
 import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -18,13 +16,13 @@ public class ColorSetting extends ConfigSetting<Integer> {
 
     @Override
     public boolean tryParseAndSet(String rawValue) {
-        String normalized = rawValue.trim().replace("#", "");
-        if (normalized.length() != 6) {
+        String normalised = rawValue.trim().replace("#", "");
+        if (normalised.length() != 6) {
             return false;
         }
 
         try {
-            set(Integer.parseInt(normalized, 16));
+            set(Integer.parseInt(normalised, 16));
             return true;
         } catch (NumberFormatException ignored) {
             return false;
