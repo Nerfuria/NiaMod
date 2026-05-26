@@ -5,6 +5,7 @@ on: push
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Check out source code
         uses: actions/checkout@v3
@@ -21,7 +22,21 @@ jobs:
           gradle-version: release-candidate
           arguments: build
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload artifact to GitHub
+        uses: actions/upload-artifact@v4
         with:
-          name: NyahMod
+          name: NiaMod
           path: build/libs/*.jar
+
+      - name: Upload jar to Discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          JAR_FILE=$(find build/libs -name "*.jar" | head -n 1)
+
+          SHORT_SHA="${GITHUB_SHA::7}"
+          COMMIT_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}"
+
+          curl -X POST "$DISCORD_WEBHOOK_URL" \
+            -F "payload_json={\"content\":\"New NiaMod build uploaded from commit [\`${SHORT_SHA}\`](${COMMIT_URL})\"}" \
+            -F "file=@${JAR_FILE}"
