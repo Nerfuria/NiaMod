@@ -41,7 +41,7 @@ jobs:
 
           CONTENT="New NiaMod commit: [\`${SHORT_SHA}\`](<${COMMIT_URL}>)
 
-          **Description:** ${COMMIT_SUBJECT}"
+          Commit Subject: ${COMMIT_SUBJECT}"
 
           PAYLOAD_JSON=$(jq -n --arg content "$CONTENT" '{content: $content}')
 
