@@ -39,7 +39,7 @@ jobs:
           COMMIT_SUBJECT=$(git log -1 --pretty=%s)
           COMMIT_DESCRIPTION=$(git log -1 --pretty=%b)
 
-          CONTENT="New NiaMod commit: [\`${SHORT_SHA}\`](${COMMIT_URL})
+          CONTENT="New NiaMod commit: [\`${SHORT_SHA}\`](<${COMMIT_URL}>)
 
           **Description:** ${COMMIT_SUBJECT}"
 
