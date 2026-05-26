@@ -33,10 +33,18 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           JAR_FILE=$(find build/libs -name "*.jar" | head -n 1)
-
           SHORT_SHA="${GITHUB_SHA::7}"
           COMMIT_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}"
 
-          curl -X POST "$DISCORD_WEBHOOK_URL" \
-            -F "payload_json={\"content\":\"New NiaMod build uploaded from commit [\`${SHORT_SHA}\`](${COMMIT_URL})\"}" \
+          COMMIT_SUBJECT=$(git log -1 --pretty=%s)
+          COMMIT_DESCRIPTION=$(git log -1 --pretty=%b)
+
+          CONTENT="New NiaMod commit: [\`${SHORT_SHA}\`](${COMMIT_URL})
+
+          **Description:** ${COMMIT_SUBJECT}"
+
+          PAYLOAD_JSON=$(jq -n --arg content "$CONTENT" '{content: $content}')
+
+          curl --fail -X POST "$DISCORD_WEBHOOK_URL" \
+            -F "payload_json=${PAYLOAD_JSON}" \
             -F "file=@${JAR_FILE}"
