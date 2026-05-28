@@ -9,8 +9,10 @@ import lombok.Getter;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import org.nia.niamod.NiamodClient;
+import org.nia.niamod.eventbus.NiaEventBus;
 import org.nia.niamod.managers.FeatureManager;
 import org.nia.niamod.managers.OverlayManager;
+import org.nia.niamod.models.events.GuildMapUpdateEvent;
 import org.nia.niamod.overlays.ResourceTickOverlay;
 import org.nia.niamod.util.MathUtils;
 import org.nia.niamod.util.TerritoryUtils;
@@ -51,7 +53,8 @@ public class ResourceTickFeature extends Feature {
             lastMapTick = currentMapTick;
             return;
         }
-        FeatureManager.getDefenseEstimatesFeature().clearCache();
+        // Since the map tick changed this means the map updated
+        NiaEventBus.dispatch(new GuildMapUpdateEvent());
         lastMapTick = currentMapTick;
         String currentWorld = currentWorldName();
         if (currentWorld == null || !currentWorld.equals(lastWorld)) {

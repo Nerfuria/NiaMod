@@ -7,8 +7,9 @@ import com.wynntils.utils.type.CappedValue;
 import org.nia.niamod.NiamodClient;
 import org.nia.niamod.eventbus.NiaEventBus;
 import org.nia.niamod.eventbus.Subscribe;
-import org.nia.niamod.models.defense.CachedDefenseEstimate;
+import org.nia.niamod.models.defense.DefenseEstimate;
 import org.nia.niamod.models.defense.DefenseEstimateCacheKey;
+import org.nia.niamod.models.events.GuildMapUpdateEvent;
 import org.nia.niamod.models.events.TerritoryTooltipHeightEvent;
 import org.nia.niamod.models.events.TerritoryTooltipRenderEvent;
 import org.nia.niamod.render.Render2D;
@@ -21,19 +22,19 @@ import java.util.Map;
 
 public class DefenseEstimatesFeature extends Feature {
     private static final int MAX_CACHE_SIZE = 512;
-    private final Map<DefenseEstimateCacheKey, CachedDefenseEstimate> estimateCache =
+    private final Map<DefenseEstimateCacheKey, DefenseEstimate> estimateCache =
             new LinkedHashMap<>(16, 0.75f, true);
 
-    private CachedDefenseEstimate estimate(String territoryName, TerritoryInfo territoryInfo) {
+    private DefenseEstimate estimate(String territoryName, TerritoryInfo territoryInfo) {
         if (territoryInfo == null) {
-            return CachedDefenseEstimate.EMPTY;
+            return DefenseEstimate.EMPTY;
         }
         DefenseEstimateCacheKey storedResources = cacheKey(territoryInfo, territoryName);
-        CachedDefenseEstimate cached = estimateCache.get(storedResources);
+        DefenseEstimate cached = estimateCache.get(storedResources);
         if (cached != null) {
             return cached;
         }
-        CachedDefenseEstimate estimate = DefenseEstimateUtils.estimate(territoryName, territoryInfo);
+        DefenseEstimate estimate = DefenseEstimateUtils.estimate(territoryName, territoryInfo);
         estimateCache.put(storedResources, estimate);
         trimEstimateCache();
         return estimate;
@@ -94,5 +95,10 @@ public class DefenseEstimatesFeature extends Feature {
 
     public void clearCache() {
         estimateCache.clear();
+    }
+
+    @Subscribe
+    public void onGuildMapUpdate(GuildMapUpdateEvent event) {
+        this.clearCache();
     }
 }
