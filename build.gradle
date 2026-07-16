@@ -14,8 +14,8 @@ repositories {
     mavenCentral()
     maven { url = "https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1" }
 
-    maven { url "https://maven.shedaniel.me/" }
-    maven { url "https://maven.terraformersmc.com/releases/" }
+    maven { url = "https://maven.shedaniel.me/" }
+    maven { url = "https://maven.terraformersmc.com/releases/" }
 
     maven {url = "https://api.modrinth.com/maven" }
 }
@@ -24,15 +24,15 @@ dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings loom.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
+    modRuntimeOnly "me.djtheredstoner:DevAuth-fabric:1.2.2"
     compileOnly "org.projectlombok:lombok:${project.lombok_version}"
     annotationProcessor "org.projectlombok:lombok:${project.lombok_version}"
 
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
     modImplementation "maven.modrinth:wynntils:v${project.wynntils_version}-fabric"
-    modCompileOnly  "maven.modrinth:wynnextras:${project.wynnextras_version}"
-    modImplementation("com.terraformersmc:modmenu:${project.modmenu_version}")
-    }
+    modCompileOnly "maven.modrinth:wynnextras:${project.wynnextras_version}"
+    modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
+}
 
 processResources {
     inputs.property "version", project.version
