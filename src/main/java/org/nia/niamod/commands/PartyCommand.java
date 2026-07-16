@@ -16,6 +16,8 @@ import org.nia.niamod.commands.choices.EnumHelper;
 import org.nia.niamod.commands.choices.RaidType;
 import org.nia.niamod.commands.choices.SpeedType;
 import org.nia.niamod.commands.choices.WorldType;
+import org.nia.niamod.gui.payload.PartyPacket;
+import org.nia.niamod.gui.screen.PartyScreen;
 
 import java.util.List;
 import java.util.Map;
@@ -64,7 +66,7 @@ public class PartyCommand {
     }
 
     private static int launchPartyScreen(CommandContext<FabricClientCommandSource> ctx) {
-        client.execute(() -> client.setScreen(null));
+        client.execute(() -> client.setScreen(new PartyScreen()));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -86,20 +88,14 @@ public class PartyCommand {
             throw new SimpleCommandExceptionType(errorString).create();
 
         client.execute(() -> {
-            client.setScreen(null);
+            client.setScreen(new PartyScreen(new PartyPacket(
+                    RaidType.valueOf(raidType),
+                    SpeedType.valueOf(speedType),
+                    WorldType.valueOf(worldType),
+                    note
+            )));
         });
 
         return Command.SINGLE_SUCCESS;
     }
-
-    //        client.execute {
-    //            client.setScreen(PartyScreen(
-    //                packet = PartyPacket(
-    //                    RaidSuggestions.RaidType.valueOf(raidType),
-    //                    SpeedSuggestions.SpeedType.valueOf(speedType),
-    //                    WorldSuggestions.WorldType.valueOf(worldType),
-    //                    note
-    //                )
-    //            ))
-    //        }
 }
