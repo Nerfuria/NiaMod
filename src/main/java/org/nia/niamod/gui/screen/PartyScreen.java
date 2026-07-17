@@ -8,14 +8,18 @@ import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
 import org.nia.niamod.gui.payload.PartyPacket;
 
+import javax.annotation.Nullable;
+
 public class PartyScreen extends Screen {
-    private PartyPacket packet;
+    @Nullable
+    private final PartyPacket packet;
 
     public PartyScreen() {
         super(Component.literal("Party Screen"));
+        this.packet = null;
     }
 
-    public PartyScreen(PartyPacket packet) {
+    public PartyScreen(@NonNull PartyPacket packet) {
         super(Component.literal("Party Screen"));
         this.packet = packet;
     }
@@ -34,7 +38,7 @@ public class PartyScreen extends Screen {
             );
         }).build();
 
-        System.out.println(packet.toString());
+        if (packet != null) System.out.println(packet.toString());
 
         addRenderableWidget(buttonWidget);
     }

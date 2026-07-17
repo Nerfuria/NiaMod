@@ -8,6 +8,8 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 import org.lwjgl.glfw.GLFW;
+import org.nia.niamod.features.IgnoreFeature;
+import org.nia.niamod.gui.screen.IgnoreManagerScreen;
 import org.nia.niamod.gui.screen.PartyScreen;
 
 import java.util.HashMap;
@@ -25,7 +27,8 @@ public class KeybindManager {
 
         // register party command here, feature not yet set
         registerKeybinding("Create a guild party", GLFW.GLFW_KEY_P, () -> {
-            Minecraft.getInstance().setScreen(new PartyScreen());
+            Minecraft client = Minecraft.getInstance();
+            client.setScreen(new IgnoreManagerScreen(client.screen, new IgnoreFeature()));
         });
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
