@@ -3,6 +3,7 @@ package org.nia.niamod.managers;
 import lombok.experimental.UtilityClass;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import org.nia.niamod.commands.NiamodCommand;
+import org.nia.niamod.commands.PartyCommand;
 import org.nia.niamod.commands.ProfessionBombShareCommand;
 import org.nia.niamod.commands.RadianceSyncCommand;
 
@@ -20,6 +21,7 @@ public class CommandManager {
             dispatcher.register(RadianceSyncCommand.command());
             dispatcher.register(ProfessionBombShareCommand.command());
             dispatcher.register(NiamodCommand.command());
+            dispatcher.register(PartyCommand.command());
         });
     }
 }
