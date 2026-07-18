@@ -12,11 +12,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import org.nia.niamod.commands.choices.EnumHelper;
-import org.nia.niamod.commands.choices.RaidType;
-import org.nia.niamod.commands.choices.SpeedType;
-import org.nia.niamod.commands.choices.WorldType;
-import org.nia.niamod.gui.payload.PartyPacket;
+import org.nia.niamod.features.PartyFeature;
+import org.nia.niamod.managers.FeatureManager;
+import org.nia.niamod.util.EnumHelper;
+import org.nia.niamod.models.gparty.RaidMode;
+import org.nia.niamod.models.gparty.SpeedMode;
+import org.nia.niamod.models.gparty.WorldMode;
 import org.nia.niamod.gui.screen.PartyScreen;
 
 import java.util.List;
@@ -33,9 +34,9 @@ public class PartyCommand {
     private static final String WORLD = "world_type";
     private static final String NOTE = "note";
 
-    List<String> raidList = List.of(EnumHelper.enumNames(RaidType.class));
-    List<String> speedList = List.of(EnumHelper.enumNames(SpeedType.class));
-    List<String> worldList = List.of(EnumHelper.enumNames(WorldType.class));
+    List<String> raidList = List.of(EnumHelper.enumNames(RaidMode.class));
+    List<String> speedList = List.of(EnumHelper.enumNames(SpeedMode.class));
+    List<String> worldList = List.of(EnumHelper.enumNames(WorldMode.class));
 
     private static final Map<String, String> exceptionMessages = Map.of(
             "BASE", "Guild party command invalid!\n",
@@ -66,7 +67,9 @@ public class PartyCommand {
     }
 
     private static int launchPartyScreen(CommandContext<FabricClientCommandSource> ctx) {
-        client.execute(() -> client.setScreen(new PartyScreen()));
+        client.execute(() -> {
+            client.setScreen(new PartyScreen(client.screen, FeatureManager.getPartyFeature()));
+        });
         return Command.SINGLE_SUCCESS;
     }
 
@@ -87,13 +90,13 @@ public class PartyCommand {
         if (!errorString.getString().equals(exceptionMessages.get("BASE")))
             throw new SimpleCommandExceptionType(errorString).create();
 
+        PartyFeature feature = FeatureManager.getPartyFeature();
+
+        // TODO: Add validation on whether there is already a party
+        feature.setNewRaidParty(RaidMode.valueOf(raidType), SpeedMode.valueOf(speedType), WorldMode.valueOf(worldType), note);
+
         client.execute(() -> {
-            client.setScreen(new PartyScreen(new PartyPacket(
-                    RaidType.valueOf(raidType),
-                    SpeedType.valueOf(speedType),
-                    WorldType.valueOf(worldType),
-                    note
-            )));
+            client.setScreen(new PartyScreen(client.screen, feature));
         });
 
         return Command.SINGLE_SUCCESS;

@@ -1,27 +1,28 @@
 package org.nia.niamod.gui.screen;
 
+import lombok.NonNull;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.toasts.SystemToast;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import org.jspecify.annotations.NonNull;
-import org.nia.niamod.gui.payload.PartyPacket;
+import org.nia.niamod.features.PartyFeature;
 
 import javax.annotation.Nullable;
 
 public class PartyScreen extends Screen {
-    @Nullable
-    private final PartyPacket packet;
+    @NonNull private final PartyFeature feature;
+    @Nullable private final Screen parent;
 
-    public PartyScreen() {
+    public PartyScreen(@Nullable Screen parent, @NonNull PartyFeature feature) {
         super(Component.literal("Party Screen"));
-        this.packet = null;
-    }
+        this.feature = feature;
+        this.parent = parent;
 
-    public PartyScreen(@NonNull PartyPacket packet) {
-        super(Component.literal("Party Screen"));
-        this.packet = packet;
+        System.out.println("Raid mode: " + feature.getCurrentRaid());
+        System.out.println("Speed mode: " + feature.getCurrentSpeed());
+        System.out.println("World mode: " + feature.getCurrentWorld());
+        System.out.println("Note: " + feature.getRaidNote());
     }
 
     @Override
@@ -37,8 +38,6 @@ public class PartyScreen extends Screen {
                     )
             );
         }).build();
-
-        if (packet != null) System.out.println(packet.toString());
 
         addRenderableWidget(buttonWidget);
     }
@@ -56,5 +55,10 @@ public class PartyScreen extends Screen {
                 0xFFFFFFFF,
                 true
         );
+    }
+
+    @Override
+    public void onClose() {
+        minecraft.setScreen(parent);
     }
 }

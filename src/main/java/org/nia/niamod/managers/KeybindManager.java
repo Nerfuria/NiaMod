@@ -25,12 +25,6 @@ public class KeybindManager {
 
         keybinds = new HashMap<>();
 
-        // register party command here, feature not yet set
-        registerKeybinding("Create a guild party", GLFW.GLFW_KEY_P, () -> {
-            Minecraft client = Minecraft.getInstance();
-            client.setScreen(new IgnoreManagerScreen(client.screen, new IgnoreFeature()));
-        });
-
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player != null) {
                 for (Map.Entry<KeyMapping, Runnable> entry : keybinds.entrySet()) {

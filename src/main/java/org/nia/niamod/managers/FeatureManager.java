@@ -32,6 +32,8 @@ public class FeatureManager {
     private static IgnoreFeature ignoreFeature;
     @Getter
     private static DefenseEstimatesFeature defenseEstimatesFeature;
+    @Getter
+    private static PartyFeature partyFeature;
 
     public static void init() {
         resTickFeature = new ResourceTickFeature();
@@ -45,6 +47,7 @@ public class FeatureManager {
         autoStreamFeature = new AutoStreamFeature();
         ignoreFeature = new IgnoreFeature();
         defenseEstimatesFeature = new DefenseEstimatesFeature();
+        partyFeature = new PartyFeature();
 
         for (Feature feature : List.of(
                 resTickFeature,
@@ -57,7 +60,8 @@ public class FeatureManager {
                 radianceSyncFeature,
                 autoStreamFeature,
                 ignoreFeature,
-                defenseEstimatesFeature
+                defenseEstimatesFeature,
+                partyFeature
         )) {
             feature.runSafe("init", feature::init);
         }

@@ -1,4 +1,4 @@
-package org.nia.niamod.commands.choices;
+package org.nia.niamod.util;
 
 import lombok.experimental.UtilityClass;
 
