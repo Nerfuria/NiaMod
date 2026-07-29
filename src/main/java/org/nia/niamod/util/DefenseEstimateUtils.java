@@ -262,6 +262,7 @@ public class DefenseEstimateUtils {
         List<String> lines = new ArrayList<>();
         Map<TerritoryUpgrade, Integer> defenses = estimate.defenses();
 
+        lines.add("");
         lines.add(ChatFormatting.GOLD + "Predicted Defences");
         for (TerritoryUpgrade upgrade : DEFENSE_ESTIMATE_ORDER) {
             lines.add(ChatFormatting.GRAY + upgrade.getName() + ": " + ChatFormatting.WHITE + defenses.getOrDefault(upgrade, 0));
