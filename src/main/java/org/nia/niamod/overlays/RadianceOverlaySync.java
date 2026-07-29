@@ -61,7 +61,6 @@ public class RadianceOverlaySync implements TextOverlay {
             return;
         }
         NyahConfig.getData().setRadianceSyncRequireWar(requireWar);
-        NyahConfig.save();
     }
 
     public void setManualConnectRequested(boolean manualConnectRequested) {
@@ -84,7 +83,6 @@ public class RadianceOverlaySync implements TextOverlay {
             return;
         }
         NyahConfig.getData().setRadianceSyncSelfTier(tier);
-        NyahConfig.save();
     }
 
     public RadianceOverlayMode getOverlayMode() {
@@ -107,7 +105,6 @@ public class RadianceOverlaySync implements TextOverlay {
             return;
         }
         NyahConfig.getData().setRadianceSyncGroupKey(normalised);
-        NyahConfig.save();
         cloudflareSync.reset();
     }
 
@@ -196,7 +193,6 @@ public class RadianceOverlaySync implements TextOverlay {
     @Override
     public void setXOffset(int xOffset) {
         NyahConfig.getData().setRadianceSyncOverlayOffsetX(xOffset);
-        NyahConfig.save();
     }
 
     @Override
@@ -207,7 +203,6 @@ public class RadianceOverlaySync implements TextOverlay {
     @Override
     public void setYOffset(int yOffset) {
         NyahConfig.getData().setRadianceSyncOverlayOffsetY(yOffset);
-        NyahConfig.save();
     }
 
     @Override
@@ -218,7 +213,6 @@ public class RadianceOverlaySync implements TextOverlay {
     @Override
     public void setScale(float scale) {
         NyahConfig.getData().setRadianceSyncOverlayScale(scale);
-        NyahConfig.save();
     }
 
     @Override
@@ -229,7 +223,6 @@ public class RadianceOverlaySync implements TextOverlay {
     @Override
     public void setEnabled(boolean enabled) {
         NyahConfig.getData().setRadianceSyncEnabled(enabled);
-        NyahConfig.save();
         if (FeatureManager.getRadianceSyncFeature() != null) {
             FeatureManager.getRadianceSyncFeature().setEnabled(enabled);
         }

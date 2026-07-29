@@ -108,8 +108,7 @@ public class SliderComponent implements ConfigComponent {
         List<FormattedCharSequence> lines = WrappedText.lines(font, setting.getTitle(), labelMaxWidth(width));
         WrappedText.draw(g, font, lines, x, WrappedText.centeredY(y, height, WrappedText.height(font, lines)), textColor);
 
-        float targetPercentage = getProgress();
-        renderPercentage = (renderPercentage * 29 + targetPercentage) / 30;
+        renderPercentage = getProgress();
         dragSquish *= 0.82f;
 
         String valueText = formatValue();

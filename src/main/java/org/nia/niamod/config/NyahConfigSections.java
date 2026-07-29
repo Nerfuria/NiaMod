@@ -285,7 +285,6 @@ final class NyahConfigSections {
         return value -> {
             setter.accept(config(), value);
             NyahConfig.applyFeatureStates();
-            NyahConfig.save();
         };
     }
 
@@ -365,10 +364,7 @@ final class NyahConfigSections {
                     }
                     return value.name();
                 },
-                value -> {
-                    setter.accept(config(), T.valueOf(type, value));
-                    NyahConfig.save();
-                },
+                value -> setter.accept(config(), T.valueOf(type, value)),
                 Arrays.stream(type.getEnumConstants()).map(Enum::name).toList(),
                 labelResolver
         );
@@ -388,10 +384,7 @@ final class NyahConfigSections {
                 title,
                 description,
                 () -> getter.apply(config()),
-                value -> {
-                    setter.accept(config(), value);
-                    NyahConfig.save();
-                },
+                value -> setter.accept(config(), value),
                 options,
                 labelResolver
         );
@@ -411,10 +404,7 @@ final class NyahConfigSections {
                 title,
                 description,
                 () -> getter.apply(config()),
-                value -> {
-                    setter.accept(config(), value);
-                    NyahConfig.save();
-                },
+                value -> setter.accept(config(), value),
                 options,
                 labelResolver
         );
@@ -468,7 +458,6 @@ final class NyahConfigSections {
             data.setClickGuiTheme(ThemeOption.CUSTOM.getKey());
         }
         setter.accept(data, normalisedValue);
-        NyahConfig.save();
     }
 
     private static int getVisibleCustomGuiBackground(NyahConfigData data) {

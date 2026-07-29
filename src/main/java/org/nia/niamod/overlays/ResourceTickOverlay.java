@@ -32,7 +32,6 @@ public class ResourceTickOverlay implements TextOverlay {
     @Override
     public void setXOffset(int xOffset) {
         NyahConfig.getData().setResTickOverlayOffsetX(xOffset);
-        NyahConfig.save();
     }
 
     @Override
@@ -43,7 +42,6 @@ public class ResourceTickOverlay implements TextOverlay {
     @Override
     public void setYOffset(int yOffset) {
         NyahConfig.getData().setResTickOverlayOffsetY(yOffset);
-        NyahConfig.save();
     }
 
     @Override
@@ -54,7 +52,6 @@ public class ResourceTickOverlay implements TextOverlay {
     @Override
     public void setScale(float scale) {
         NyahConfig.getData().setResTickOverlayScale(scale);
-        NyahConfig.save();
     }
 
     @Override
@@ -65,7 +62,6 @@ public class ResourceTickOverlay implements TextOverlay {
     @Override
     public void setEnabled(boolean enabled) {
         NyahConfig.getData().setResourceTickFeatureEnabled(enabled);
-        NyahConfig.save();
 
         if (FeatureManager.getResTickFeature() != null) {
             FeatureManager.getResTickFeature().setEnabled(enabled);

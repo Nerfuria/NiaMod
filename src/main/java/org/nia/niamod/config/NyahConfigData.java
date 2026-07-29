@@ -8,7 +8,6 @@ import org.nia.niamod.config.choices.ShoutReplacement;
 import org.nia.niamod.features.ConsuTextFeature;
 import org.nia.niamod.gui.theme.FontOption;
 import org.nia.niamod.gui.theme.ThemeOption;
-import com.wynntils.core.components.Models;
 
 import java.net.URI;
 import java.util.ArrayList;

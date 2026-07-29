@@ -910,7 +910,6 @@ public class ConfigScreen extends Screen {
             resizeEdge = 0;
             NyahConfig.getData().setGuiWidth(panelW);
             NyahConfig.getData().setGuiHeight(panelH);
-            NyahConfig.save();
             return true;
         }
 
@@ -992,6 +991,7 @@ public class ConfigScreen extends Screen {
     public void removed() {
         clearPortalSnapshot();
         super.removed();
+        NyahConfig.save();
     }
 
     @Override
