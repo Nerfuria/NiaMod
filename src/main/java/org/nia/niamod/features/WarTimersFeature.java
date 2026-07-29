@@ -39,7 +39,7 @@ public class WarTimersFeature extends Feature {
         loadTerritoriesAsync();
         WorldRenderEvents.AFTER_ENTITIES.register(context -> runSafe("render", () -> render(context)));
         KeybindManager.registerKeybinding(
-                "Show unqueued territories", GLFW.GLFW_KEY_SEMICOLON, () -> showAll = !showAll);
+                "Show unqueued territories", GLFW.GLFW_KEY_UNKNOWN, () -> showAll = !showAll);
         scheduleWarn();
     }
 

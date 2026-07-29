@@ -30,22 +30,22 @@ public class NyahConfigData {
     private int guiWidth = 500;
     private int guiHeight = 350;
 
-    private boolean resourceTickFeatureEnabled = true;
+    private boolean resourceTickFeatureEnabled = false;
     private boolean chatEncryptionFeatureEnabled = true;
     private boolean autoStreamFeatureEnabled = true;
     private boolean warTimersFeatureEnabled = true;
-    private boolean warTowerEhpFeatureEnabled = true;
+    private boolean warTowerEhpFeatureEnabled = false;
     private boolean consuTextFeatureEnabled = true;
-    private boolean shoutFilterFeatureEnabled = true;
-    private boolean viewModelFeatureEnabled = true;
-    private boolean radianceSyncEnabled = true;
+    private boolean shoutFilterFeatureEnabled = false;
+    private boolean viewModelFeatureEnabled = false;
+    private boolean radianceSyncEnabled = false;
 
     private ShoutReplacement shoutFilterMode = ShoutReplacement.COLLAPSE;
 
     private String encryptionPrefix = "@";
     private String encryptionKey = "six seven";
 
-    private int color = 0xFFFFFF;
+    private int color = 0xFF0000;
     private int colorInside = 0xFFFFFF;
     private int notQColor = 0xFFFFFF;
     private int notQInsideColor = 0xFFFFFF;
