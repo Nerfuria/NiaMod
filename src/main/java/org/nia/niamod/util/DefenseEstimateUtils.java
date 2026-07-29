@@ -117,7 +117,8 @@ public class DefenseEstimateUtils {
 
         Map<TerritoryUpgrade, Integer> defenses = estimateDefenses(territoryName, territoryInfo);
         List<String> stats = estimateStats(defenses, territoryInfo);
-        return new DefenseEstimate(Map.copyOf(defenses), List.copyOf(stats));
+        int queueTime = TerritoryUtils.getQueueTime(territoryName);
+        return new DefenseEstimate(Map.copyOf(defenses), List.copyOf(stats), queueTime);
     }
 
     private static Map<TerritoryUpgrade, Integer> estimateDefenses(String territoryName, TerritoryInfo territoryInfo) {
@@ -276,6 +277,10 @@ public class DefenseEstimateUtils {
         lines.add("");
         lines.add(ChatFormatting.GOLD + "Predicted Stats");
         lines.addAll(estimate.stats());
+
+        lines.add("");
+        lines.add(ChatFormatting.GOLD + "Queue Time (Fastest)");
+        lines.add(ChatFormatting.GRAY + Integer.toString(estimate.queueTime()) + " min");
 
         return lines;
     }

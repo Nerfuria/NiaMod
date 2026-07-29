@@ -23,6 +23,7 @@ import java.util.*;
 public class TerritoryUtils {
     public static final GuildResource[] RESOURCES = GuildResource.values();
     private static final HQDistanceCache HQ_DISTANCE_CACHE = new HQDistanceCache();
+    private static final QueueTimeCache QUEUE_TIME_CACHE = new QueueTimeCache();
 
     public static int resStorageCapToLevel(int maxResourceStorage) {
         return switch (maxResourceStorage) {
@@ -87,6 +88,13 @@ public class TerritoryUtils {
      */
     public static int getHQDistance(String territoryName) {
         return HQ_DISTANCE_CACHE.get(territoryName);
+    }
+
+    /**
+     * Get the queue time of a territory using BFS.
+     */
+    public static int getQueueTime(String territoryName) {
+        return QUEUE_TIME_CACHE.get(territoryName);
     }
 
     public static Optional<String> getHQ(String guild) {
@@ -298,6 +306,66 @@ public class TerritoryUtils {
                             return;
                         }
                     queue.add(new Pair<>(conn, dist + 1));
+                }
+            }
+        }
+    }
+
+    private static class QueueTimeCache {
+        private final Map<String, Integer> cache = new HashMap<>();
+
+        public QueueTimeCache() {
+            NiaEventBus.subscribe(this);
+        }
+
+        @Subscribe
+        public void onGuildMapUpdate(GuildMapUpdateEvent event) {
+            cache.clear();
+        }
+
+        public int get(String territoryName) {
+            Integer time = cache.get(territoryName);
+
+            if (time != null)
+                return time;
+
+            computeQueueTimes();
+
+            return cache.getOrDefault(territoryName, 2);
+        }
+
+        // Start at HQ and use bfs to find queue time to all territories.
+        private void computeQueueTimes() {
+            String guild = Models.Guild.getGuildName();
+            if (guild == null)
+                return;
+            Optional<String> HQName = getHQ(guild);
+            if (HQName.isEmpty()) {
+                return;
+            }
+
+            TerritoryInfo startTerr = Models.Territory.getTerritoryPoiFromAdvancement(HQName.get()).getTerritoryInfo();
+            cache.put(HQName.get(), 1);
+
+            ArrayDeque<Pair<TerritoryInfo, Integer>> queue = new ArrayDeque<>();
+            Set<String> checked = new HashSet<>();
+            queue.add(new Pair<>(startTerr, 1));
+            checked.add(HQName.get());
+
+            while (!queue.isEmpty()) {
+                var next = queue.poll();
+                TerritoryInfo terr = next.a();
+                int time = next.b();
+
+                List<String> conns = terr.getTradingRoutes();
+                for (String connName : conns) {
+                    if (checked.contains(connName))
+                        continue;
+                    checked.add(connName);
+
+                    TerritoryInfo conn = Models.Territory.getTerritoryPoiFromAdvancement(connName).getTerritoryInfo();
+                    cache.put(connName, time + 1);
+                    queue.add(new Pair<>(conn, time + 1));
                 }
             }
         }
