@@ -231,11 +231,11 @@ public class TerritoryUtils {
 
             for (String connection : current.info().getTradingRoutes()) {
                 TerritoryInfo connected = territoryInfo(connection);
-                if (connected == null || !guild.equals(connected.getGuildName()) || !visited.add(connected)) {
+                if (connected == null || !visited.add(connected)) {
                     continue;
                 }
 
-                count++;
+                if (!guild.equals(connected.getGuildName())) count++;
                 queue.addLast(new TerritoryInfoDepth(connected, current.depth() + 1));
             }
         }
