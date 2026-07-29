@@ -75,8 +75,7 @@ final class NyahConfigSections {
                 null,
                 null,
                 List.of(
-                        string("api_base", "API URL", "Base Wynncraft API URL.", NyahConfigData::getApiBase, NyahConfigData::setApiBase),
-                        string("guild_name", "Guild Name", "Guild to load players from.", NyahConfigData::getGuildName, NyahConfigData::setGuildName)
+                        string("api_base", "API URL", "Base Wynncraft API URL.", NyahConfigData::getApiBase, NyahConfigData::setApiBase)
                 )
         );
     }

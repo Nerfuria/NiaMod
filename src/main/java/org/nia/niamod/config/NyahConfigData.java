@@ -8,6 +8,7 @@ import org.nia.niamod.config.choices.ShoutReplacement;
 import org.nia.niamod.features.ConsuTextFeature;
 import org.nia.niamod.gui.theme.FontOption;
 import org.nia.niamod.gui.theme.ThemeOption;
+import com.wynntils.core.components.Models;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -18,7 +19,6 @@ import java.util.List;
 public class NyahConfigData {
     private static final String DEFAULT_RADIANCE_SYNC_WORKER_URL = "https://radiancesync.wavelink.workers.dev";
     private String apiBase = "https://api.wynncraft.com/v3/";
-    private String guildName = "Nerfuria";
 
     private String clickGuiTheme = ThemeOption.DEFAULT.getKey();
     private String clickGuiFont = FontOption.MINECRAFT_DEFAULT.getKey();
@@ -100,9 +100,6 @@ public class NyahConfigData {
     public void normalise() {
         if (apiBase == null || apiBase.isBlank()) {
             apiBase = "https://api.wynncraft.com/v3/";
-        }
-        if (guildName == null || guildName.isBlank()) {
-            guildName = "Nerfuria";
         }
 
         if (favouritePlayers == null) {

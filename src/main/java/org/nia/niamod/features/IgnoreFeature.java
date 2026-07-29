@@ -1,5 +1,6 @@
 package org.nia.niamod.features;
 
+import com.wynntils.core.components.Models;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.glfw.GLFW;
@@ -42,6 +43,7 @@ public class IgnoreFeature extends Feature {
     private int revision;
     @Getter
     private List<String> players;
+    private boolean guildLoaded = false;
 
     private static Optional<String> playerName(String message, Pattern pattern) {
         Matcher matcher = pattern.matcher(message);
@@ -66,12 +68,16 @@ public class IgnoreFeature extends Feature {
         NiaEventBus.subscribe(this);
         players = List.of();
         loadPersistedIgnoredPlayers();
-        loadGuildPlayersAsync();
         scheduleQueuedCommands();
     }
 
     private void loadGuildPlayersAsync() {
-        WynncraftAPI.guildResponseAsync(NyahConfig.getData().getGuildName())
+        String guildName = Models.Guild.getGuildName();
+        if (guildName == null || guildName.isBlank()) {
+            NiamodClient.LOGGER.info("No guild. Skipped loading ignorelist guild members.");
+            return;
+        }
+        WynncraftAPI.guildResponseAsync(guildName)
                 .whenComplete(
                         (response, throwable) -> {
                             if (throwable != null) {
@@ -464,6 +470,10 @@ public class IgnoreFeature extends Feature {
     }
 
     public void openScreen() {
+        if (!guildLoaded) {
+            guildLoaded = true;
+            loadGuildPlayersAsync();
+        }
         Minecraft minecraft = Minecraft.getInstance();
         minecraft.setScreen(new IgnoreManagerScreen(minecraft.screen, this));
     }
