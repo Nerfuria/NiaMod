@@ -10,11 +10,11 @@ territories ✅
 - **Radiance Tracker** - Syncs your Radiance Timer with your partner ✅
 - **Support for `/gu territory` in wars** ❌
 - **Pre-snipe consu checker** - double checks if you have the consus you need ❌
-- **Queue timer overlay on map** ❌
+- **Queue time info on map** ✅
 - **Territory borders in world** ✅
-- **Defense reverser** - shows estimated territory defenses based on the resources of that territory ❌
+- **Defense reverser** - shows estimated territory defenses based on the resources of that territory ✅
 - **Individual DPS stats after wars** ❌
-- **Consu Textures** ❌
+- **Consu Textures** ✅
 - **Consu Labels** ✅
 - **Tower EHP** ✅
 ### Raids
@@ -24,7 +24,7 @@ territories ✅
 ### Other
 - **Encrypted chat** ✅
 - **Ignore GUI** (WIP)
-- **Auto stream** ❌
+- **Auto stream** ✅
 - **Emotes** ❌
 - **Party member stats** - shows raid stats of party members ❌
 - **Missing ability points warning** ❌
