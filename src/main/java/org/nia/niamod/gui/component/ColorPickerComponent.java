@@ -217,6 +217,7 @@ public class ColorPickerComponent implements ConfigComponent {
         }
     }
 
+    @Override
     public void updateClipVisibility(int clipTop, int clipBottom) {
         if (hexInput == null) return;
         int centerY = y + closedHeight / 2;
@@ -228,6 +229,7 @@ public class ColorPickerComponent implements ConfigComponent {
         }
     }
 
+    @Override
     public void hide() {
         if (hexInput != null) {
             hexInput.setX(-300);
@@ -239,6 +241,7 @@ public class ColorPickerComponent implements ConfigComponent {
         }
     }
 
+    @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button != 0) return false;
         syncFromSettingIfIdle();
@@ -283,6 +286,7 @@ public class ColorPickerComponent implements ConfigComponent {
         return false;
     }
 
+    @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
         if (draggingSV) {
             int panelX = x + 4;
@@ -306,6 +310,7 @@ public class ColorPickerComponent implements ConfigComponent {
         return false;
     }
 
+    @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if (draggingSV || draggingHue) {
             draggingSV = false;
@@ -349,13 +354,13 @@ public class ColorPickerComponent implements ConfigComponent {
     }
 
     private void updateSV(double mouseX, double mouseY, int gradX, int gradY, int gradW, int gradH) {
-        saturation = Math.max(0, Math.min(1, (float) (mouseX - gradX) / gradW));
-        value = Math.max(0, Math.min(1, 1.0f - (float) (mouseY - gradY) / gradH));
+        saturation = Math.clamp((float) (mouseX - gradX) / gradW, 0, 1);
+        value = Math.clamp(1.0f - (float) (mouseY - gradY) / gradH, 0, 1);
         commitColor(currentRgb());
     }
 
     private void updateHue(double mouseX, int hueBarX, int hueBarW) {
-        hue = Math.max(0, Math.min(359.9f, (float) (mouseX - hueBarX) / hueBarW * 360.0f));
+        hue = Math.clamp((float) (mouseX - hueBarX) / hueBarW * 360.0f, 0, 359.9f);
         commitColor(currentRgb());
     }
 

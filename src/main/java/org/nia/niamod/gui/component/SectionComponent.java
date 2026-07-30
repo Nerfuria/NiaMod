@@ -292,7 +292,8 @@ public class SectionComponent {
         if (headerToggleAnim < 0) {
             headerToggleAnim = enabled ? 1 : 0;
         }
-        return headerToggleAnim = (headerToggleAnim * 4f + (enabled ? 1f : 0f)) / 5f;
+        headerToggleAnim = (headerToggleAnim * 4f + (enabled ? 1f : 0f)) / 5f;
+        return headerToggleAnim;
     }
 
 }

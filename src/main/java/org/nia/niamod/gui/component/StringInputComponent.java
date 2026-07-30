@@ -107,6 +107,7 @@ public class StringInputComponent implements ConfigComponent {
         }
     }
 
+    @Override
     public void updateClipVisibility(int clipTop, int clipBottom) {
         if (editBox == null) return;
         int editY = y + Math.max(0, (getHeight() - editBox.getHeight()) / 2);
@@ -117,6 +118,7 @@ public class StringInputComponent implements ConfigComponent {
         }
     }
 
+    @Override
     public void hide() {
         if (editBox != null) {
             editBox.setX(-300);

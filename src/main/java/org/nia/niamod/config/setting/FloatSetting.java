@@ -26,7 +26,7 @@ public class FloatSetting extends ConfigSetting<Float> {
     public boolean tryParseAndSet(String rawValue) {
         try {
             float value = Float.parseFloat(rawValue.trim());
-            set(Math.max(min, Math.min(max, value)));
+            set(Math.clamp(value, min, max));
             return true;
         } catch (NumberFormatException ignored) {
             return false;

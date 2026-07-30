@@ -191,7 +191,7 @@ public class TerritoryUtils {
     private static double upgradeMultiplier(Map<TerritoryUpgrade, Integer> upgrades, TerritoryUpgrade upgrade) {
         int level = upgrades == null ? 0 : upgrades.getOrDefault(upgrade, 0);
         TerritoryUpgrade.Level[] levels = upgrade.getLevels();
-        int clampedLevel = Math.max(0, Math.min(level, levels.length - 1));
+        int clampedLevel = Math.clamp(level, 0, levels.length - 1);
         return 1.0 + levels[clampedLevel].bonus() / 100.0;
     }
 

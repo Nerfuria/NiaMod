@@ -444,7 +444,7 @@ public class IgnoreManagerScreen extends Screen {
         double travel = Math.max(1.0, track.height() - height);
         double thumbTop = mouseY - thumbOffset;
         double progress = (thumbTop - track.y()) / travel;
-        progress = Math.max(0.0, Math.min(1.0, progress));
+        progress = Math.clamp(progress, 0.0, 1.0);
         scroll = scrollTarget = -maxScroll * progress;
     }
 
@@ -516,8 +516,8 @@ public class IgnoreManagerScreen extends Screen {
 
     private void clampScroll() {
         int maxScroll = maxScroll();
-        scrollTarget = Math.max(-maxScroll, Math.min(0, scrollTarget));
-        scroll = Math.max(-maxScroll, Math.min(0, scroll));
+        scrollTarget = Math.clamp(scrollTarget, -maxScroll, 0);
+        scroll = Math.clamp(scroll, -maxScroll, 0);
     }
 
     private int maxScroll() {

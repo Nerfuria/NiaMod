@@ -52,22 +52,24 @@ public class ProfessionBombShareCommand {
 
     private static List<String> guildMessages(List<BombInfo> bombs) {
         List<String> messages = new ArrayList<>();
+        if (bombs.isEmpty())
+            return messages;
         StringBuilder current = new StringBuilder("Active Bombs: ");
+        String separator = "";
 
         for (BombInfo bomb : bombs) {
             String entry = formatBomb(bomb);
-            String separator = current.toString().equals("Active Bombs: ") ? "" : " | ";
-            if (!current.toString().equals("Active Bombs: ") && current.length() + separator.length() + entry.length() > MAX_GUILD_MESSAGE_LENGTH) {
+            if (current.length() + separator.length() + entry.length() > MAX_GUILD_MESSAGE_LENGTH) {
                 messages.add(current.toString());
                 current = new StringBuilder();
                 separator = "";
             }
             current.append(separator).append(entry);
+            separator = " | ";
         }
 
-        if (!current.toString().equals("Active Bombs: ")) {
+        if (!current.isEmpty())
             messages.add(current.toString());
-        }
         return messages;
     }
 

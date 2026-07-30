@@ -132,14 +132,12 @@ public class RadianceOverlaySync implements TextOverlay {
 
         Double cooldownSecondsBoxed = getCooldownRemainingSeconds(client);
         boolean onCooldown = cooldownSecondsBoxed != null;
-        if (cooldownSecondsBoxed != null) {
-            if (!wasOnCooldown) {
-                double cooldownSeconds = cooldownSecondsBoxed;
-                double remainingDuration = getDetectedRemainingDurationSeconds(NyahConfig.getData().getRadianceSyncSelfTier(), cooldownSeconds);
-                cloudflareSync.send(NyahConfig.getData().getRadianceSyncSelfTier(), toMillis(remainingDuration));
-                if (statusMode) {
-                    startTimerAt(now, remainingDuration, remainingDuration);
-                }
+        if (cooldownSecondsBoxed != null && !wasOnCooldown) {
+            double cooldownSeconds = cooldownSecondsBoxed;
+            double remainingDuration = getDetectedRemainingDurationSeconds(NyahConfig.getData().getRadianceSyncSelfTier(), cooldownSeconds);
+            cloudflareSync.send(NyahConfig.getData().getRadianceSyncSelfTier(), toMillis(remainingDuration));
+            if (statusMode) {
+                startTimerAt(now, remainingDuration, remainingDuration);
             }
         }
         wasOnCooldown = onCooldown;

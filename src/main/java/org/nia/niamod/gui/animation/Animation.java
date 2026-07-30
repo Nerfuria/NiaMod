@@ -47,7 +47,7 @@ public class Animation {
             return 1;
         }
         double progress = (double) (System.currentTimeMillis() - millis) / duration;
-        progress = Math.min(1, Math.max(0, progress));
+        progress = Math.clamp(progress, 0, 1);
         if (progress >= 1) finished = true;
         return easing.apply(progress);
     }

@@ -66,8 +66,8 @@ public class BooleanComponent implements ConfigComponent {
 
         int knobSize = SWITCH_HEIGHT - 2;
         int knobY = switchY + 1;
-        float knobXStart = switchX + 1;
-        float knobXEnd = switchX + SWITCH_WIDTH - 1 - knobSize;
+        int knobXStart = switchX + 1;
+        int knobXEnd = switchX + SWITCH_WIDTH - 1 - knobSize;
         int knobX = Math.round(knobXStart + animAmount * (knobXEnd - knobXStart));
 
         Render2D.shaderRoundedRect(g, knobX, knobY, knobSize, knobSize, knobSize / 2, Render2D.withAlpha(0xFFFFFF, Math.min(255, opacity + 50)));
@@ -101,6 +101,7 @@ public class BooleanComponent implements ConfigComponent {
         renderToggle(g, theme, switchX(x, width), switchY(centerY), animAmount, opacity);
     }
 
+    @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0 && mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
             setting.set(!Boolean.TRUE.equals(setting.get()));
@@ -113,7 +114,8 @@ public class BooleanComponent implements ConfigComponent {
         if (animAmount < 0) {
             animAmount = active ? 1 : 0;
         }
-        return animAmount = (animAmount * 4f + (active ? 1f : 0f)) / 5f;
+        animAmount = (animAmount * 4f + (active ? 1f : 0f)) / 5f;
+        return animAmount;
     }
 
     private int labelMaxWidth(int width) {

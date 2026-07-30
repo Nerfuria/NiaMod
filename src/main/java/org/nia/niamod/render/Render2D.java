@@ -106,10 +106,10 @@ public class Render2D {
 
     public static void dropShadow(GuiGraphics g, int x, int y, int w, int h, int loops, int opacity, int edgeRadius) {
         for (int i = 0; i <= loops; i++) {
-            float alpha = Math.max(0.5f, (opacity - (float) i * 1.2f) / 5.5f);
-            int a = Math.max(0, Math.min(255, Math.round(alpha)));
+            float alpha = Math.max(0.5f, (opacity - i * 1.2f) / 5.5f);
+            int a = Math.clamp(Math.round(alpha), 0, 255);
             if (a == 0) continue;
-            int halfMargin = Math.round((float) i / 2.0f);
+            int halfMargin = Math.round(i / 2.0f);
             int color = (a << 24);
             roundedRect(g, x - halfMargin, y - halfMargin, w + halfMargin * 2, h + halfMargin * 2, edgeRadius, color);
         }
@@ -199,7 +199,7 @@ public class Render2D {
     }
 
     public static int withAlpha(int color, int alpha) {
-        return (Math.max(0, Math.min(255, alpha)) << 24) | (color & 0x00FFFFFF);
+        return (Math.clamp(alpha, 0, 255) << 24) | (color & 0x00FFFFFF);
     }
 
     public static int lerpColor(int a, int b, float t) {
@@ -235,10 +235,10 @@ public class Render2D {
     }
 
     public static void shaderPortalOverlay(GuiGraphics g, int x, int y, int w, int h, int color, float progress) {
-        int encodedProgress = Math.max(0, Math.min(1000, Math.round(progress * 1000.0f)));
+        int encodedProgress = Math.clamp(Math.round(progress * 1000.0f), 0, 1000);
         int time = (int) ((System.currentTimeMillis() / 4L) % 60000L);
         if (!submitGuiShaderRect(g, RenderPipelines.GUI_PORTAL_OVERLAY, x, y, w, h, color, encodedProgress, time)) {
-            int alpha = Math.max(0, Math.min(255, Math.round(((color >>> 24) & 0xFF) * progress)));
+            int alpha = Math.clamp(Math.round(((color >>> 24) & 0xFF) * progress), 0, 255);
             roundedRect(g, x, y, w, h, Math.max(6, Math.min(w, h) / 5), withAlpha(color, alpha));
         }
     }

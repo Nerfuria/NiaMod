@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 @UtilityClass
 public class RadianceCooldownParser {
     private static final Pattern COOLDOWN_PATTERN = Pattern.compile(
-            "(?i)\\bradiance\\b[^0-9]*\\(?\\s*(\\d{1,2})\\s*:\\s*(\\d{2})\\s*\\)?");
+            "(?i)\\bradiance\\b\\D*\\(?\\s*(\\d{1,2})\\s*:\\s*(\\d{2})\\s*\\)?");
 
     public static Double remainingSeconds(String text) {
         String cleaned = sanitize(text);
@@ -47,7 +47,7 @@ public class RadianceCooldownParser {
         }
 
         String cleaned = value.replace("\u0000", "");
-        cleaned = cleaned.replaceAll("(?i)Â§[0-9a-fk-or]", "");
+        cleaned = cleaned.replaceAll("(?iu)Â§[0-9a-fk-or]", "");
         cleaned = cleaned.replaceAll("(?i)&[0-9a-fk-or]", "");
         cleaned = cleaned.replaceAll("&\\{[^}]*}", "");
         cleaned = cleaned.replaceAll("&\\[[^]]*]", "");

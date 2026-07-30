@@ -13,13 +13,14 @@ import org.nia.niamod.models.events.CommandSentEvent;
 
 import javax.crypto.AEADBadTagException;
 import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
+import java.security.*;
 import java.security.spec.KeySpec;
 import java.util.ArrayList;
 import java.util.List;
@@ -88,7 +89,7 @@ public class ChatEncryptionFeature extends Feature {
             byte[] salt = new byte[16];
             KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 100000, 256);
             return SecretKeyFactory.getInstance(KEY_DERIVATION_ALGO).generateSecret(spec).getEncoded();
-        } catch (Exception e) {
+        } catch (GeneralSecurityException e) {
             throw new RuntimeException(e);
         }
     }
@@ -106,7 +107,7 @@ public class ChatEncryptionFeature extends Feature {
             cipher.init(mode, new SecretKeySpec(encryptionKey(), KEY_ALGO), gcmSpec(iv));
             cipher.updateAAD(ByteBuffer.allocate(4).putInt(AAD_VALUE).array());
             return cipher;
-        } catch (Exception e) {
+        } catch (GeneralSecurityException e) {
             throw new RuntimeException(e);
         }
     }
@@ -119,7 +120,7 @@ public class ChatEncryptionFeature extends Feature {
                     initCipher(Cipher.ENCRYPT_MODE, iv)
                             .doFinal(message.trim().getBytes(StandardCharsets.UTF_8));
             return MSG_START + encode(iv) + encode(encrypted) + MSG_END;
-        } catch (Exception e) {
+        } catch (GeneralSecurityException e) {
             throw new RuntimeException(e);
         }
     }
@@ -137,7 +138,7 @@ public class ChatEncryptionFeature extends Feature {
             return new String(decrypted, StandardCharsets.UTF_8);
         } catch (AEADBadTagException e) {
             throw e;
-        } catch (Exception e) {
+        } catch (GeneralSecurityException e) {
             throw new RuntimeException(e);
         }
     }

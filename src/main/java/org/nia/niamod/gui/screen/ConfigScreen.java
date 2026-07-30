@@ -346,8 +346,10 @@ public class ConfigScreen extends Screen {
         GuiTheme theme = getTheme();
 
         if (animationMode == GuiAnimationMode.NONE) {
-            int px = Math.round(panelX), py = Math.round(panelY);
-            double cx = px + panelW / 2.0, cy = py + panelH / 2.0;
+            int px = Math.round(panelX);
+            int py = Math.round(panelY);
+            double cx = px + panelW / 2.0;
+            double cy = py + panelH / 2.0;
 
             g.pose().pushMatrix();
             if (animTime != 1) {
@@ -570,12 +572,12 @@ public class ConfigScreen extends Screen {
         tabBtns.clear();
         int buttonX = px + 10;
         int buttonW = SIDEBAR_W - 20;
-        double catY = py + 18;
+        int catY = py + 18;
         GuiTab[] tabs = GuiTab.values();
         String[] labels = {"Search", "General", "War", "Social"};
 
         for (int i = 0; i < tabs.length; i++) {
-            int by = (int) Math.round(catY);
+            int by = catY;
             int buttonH = 24;
             boolean sel = tabs[i] == selectedTab;
             boolean hovered = mx >= buttonX && mx <= buttonX + buttonW && my >= by && my <= by + buttonH;
@@ -628,9 +630,9 @@ public class ConfigScreen extends Screen {
         UiRect rect = new UiRect(x, y, moduleW, SEARCH_BAR_HEIGHT);
         boolean focused = searchBox.isFocused();
         boolean hovered = mouseX >= rect.x() && mouseX <= rect.right() && mouseY >= rect.y() && mouseY <= rect.bottom();
-        int fill = focused
-                ? Render2D.withAlpha(theme.secondary(), 245)
-                : hovered ? Render2D.withAlpha(theme.secondary(), 228) : Render2D.withAlpha(theme.secondary(), 214);
+        int fill = focused ? Render2D.withAlpha(theme.secondary(), 245)
+                 : hovered ? Render2D.withAlpha(theme.secondary(), 228)
+                 : Render2D.withAlpha(theme.secondary(), 214);
         int border = focused ? Render2D.withAlpha(theme.accentColor(), 105) : 0x20FFFFFF;
 
         Render2D.shaderRoundedSurface(g, rect.x(), rect.y(), rect.width(), rect.height(), 8, fill, border);
@@ -692,13 +694,13 @@ public class ConfigScreen extends Screen {
     }
 
     private void updateDragPosition(double mouseX, double mouseY) {
-        panelX = Math.max(-panelW + 50, Math.min(width - 50, (float) (mouseX + dragOffX)));
-        panelY = Math.max(0, Math.min(height - 30, (float) (mouseY + dragOffY)));
+        panelX = Math.clamp((float) (mouseX + dragOffX), -panelW + 50, width - 50);
+        panelY = Math.clamp((float) (mouseY + dragOffY), 0, height - 30);
     }
 
     private void setPanelSize(int panelW, int panelH) {
-        this.panelW = clamp(panelW, minPanelWidth(), maxPanelWidth());
-        this.panelH = clamp(panelH, minPanelHeight(), maxPanelHeight());
+        this.panelW = Math.clamp(panelW, minPanelWidth(), maxPanelWidth());
+        this.panelH = Math.clamp(panelH, minPanelHeight(), maxPanelHeight());
         this.moduleW = moduleWidth();
     }
 
@@ -715,11 +717,11 @@ public class ConfigScreen extends Screen {
     }
 
     private int maxPanelWidth() {
-        return Math.max(minPanelWidth(), Math.min(MAX_PANEL_W, viewportMaxWidth()));
+        return Math.clamp(viewportMaxWidth(), minPanelWidth(), MAX_PANEL_W);
     }
 
     private int maxPanelHeight() {
-        return Math.max(minPanelHeight(), Math.min(MAX_PANEL_H, viewportMaxHeight()));
+        return Math.clamp(viewportMaxHeight(), minPanelHeight(), MAX_PANEL_H);
     }
 
     private int viewportMaxWidth() {
@@ -730,13 +732,9 @@ public class ConfigScreen extends Screen {
         return Math.max(1, height - SCREEN_MARGIN * 2);
     }
 
-    private int clamp(int value, int min, int max) {
-        return Math.max(min, Math.min(max, value));
-    }
-
     private void clampScroll(int maxScroll) {
-        scrollTarget = Math.max(-maxScroll, Math.min(0, scrollTarget));
-        scroll = Math.max(-maxScroll, Math.min(0, scroll));
+        scrollTarget = Math.clamp(scrollTarget, -maxScroll, 0);
+        scroll = Math.clamp(scroll, -maxScroll, 0);
     }
 
     private void renderContentArea(GuiGraphics g, int px, int py, int contentX, int contentW, int mouseX, int mouseY, GuiTheme theme) {

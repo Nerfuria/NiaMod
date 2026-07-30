@@ -25,7 +25,7 @@ public class IntSetting extends ConfigSetting<Integer> {
     public boolean tryParseAndSet(String rawValue) {
         try {
             int value = Integer.parseInt(rawValue.trim());
-            set(Math.max(min, Math.min(max, value)));
+            set(Math.clamp(value, min, max));
             return true;
         } catch (NumberFormatException ignored) {
             return false;

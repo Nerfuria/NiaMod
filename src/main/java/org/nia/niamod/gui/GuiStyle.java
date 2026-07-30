@@ -47,7 +47,7 @@ public class GuiStyle {
         try {
             GuiTheme base = baseTheme();
             int alpha = (int) (NyahConfig.getData().getGuiOpacity() * 255 * opacityMultiplier);
-            alpha = Math.max(0, Math.min(255, alpha));
+            alpha = Math.clamp(alpha, 0, 255);
 
             return GuiTheme.builder()
                     .background((base.background() & 0x00FFFFFF) | (alpha << 24))

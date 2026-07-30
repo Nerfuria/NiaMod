@@ -91,7 +91,7 @@ public class ResourceTickFeature extends Feature {
             int resourceStorageLevel = TerritoryUtils.getResStorageLevel(territoryInfo);
             if (resourceStorageLevel < 1) continue;
             int resourceStorageCost = TerritoryUtils.resStorageLevelToCost(resourceStorageLevel);
-            float emeraldsMax = ((float) (emeraldGeneration - resourceStorageCost)) / 60f;
+            float emeraldsMax = (emeraldGeneration - resourceStorageCost) / 60f;
             mapTicks.add(Math.round((emeraldStorage.current() / emeraldsMax) * 60));
         }
         return MathUtils.mode(mapTicks);

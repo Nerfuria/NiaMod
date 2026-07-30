@@ -41,8 +41,7 @@ public class DefenseEstimateUtils {
                 double eff = effLevels[effLvl].bonus();
                 double rate = rateLevels[rateLvl].bonus();
                 int modifier = (int) ((100 + eff) * (4.0 / rate));
-                if (!result.containsKey(modifier))
-                    result.put(modifier, new ArrayList<>());
+                result.computeIfAbsent(modifier, k -> new ArrayList<>());
                 result.get(modifier).add(new EmeraldProductionUpgrade(
                         effLvl,
                         rateLvl,
@@ -122,7 +121,7 @@ public class DefenseEstimateUtils {
     }
 
     private static Map<TerritoryUpgrade, Integer> estimateDefenses(String territoryName, TerritoryInfo territoryInfo) {
-        Map<TerritoryUpgrade, Integer> result = new HashMap<>();
+        Map<TerritoryUpgrade, Integer> result = new EnumMap<>(TerritoryUpgrade.class);
 
         if (territoryInfo.isHeadquarters()) {
             result.put(TerritoryUpgrade.DAMAGE, 11);

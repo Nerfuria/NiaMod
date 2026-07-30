@@ -47,8 +47,9 @@ public class ConsuTextFeature extends Feature {
 
     private static final String LABEL_DATA_KEY = "LABELTXT";
     private static final String MODEL_FLAG = "CUSTOM_MODEL";
-    private static final Identifier LABELS = Identifier.fromNamespaceAndPath("niamod", "consumable_labels.json");
-    private static final Identifier RELOADER_ID = Identifier.fromNamespaceAndPath("niamod", "consumable_textures");
+    private static final String NAMESPACE = "niamod";
+    private static final Identifier LABELS = Identifier.fromNamespaceAndPath(NAMESPACE, "consumable_labels.json");
+    private static final Identifier RELOADER_ID = Identifier.fromNamespaceAndPath(NAMESPACE, "consumable_textures");
     private static final Type LABEL_LIST_TYPE = new TypeToken<List<StatLabel>>() {
     }.getType();
     private static final Gson GSON = new Gson();
@@ -324,13 +325,13 @@ public class ConsuTextFeature extends Feature {
     }
 
     private static String labelText(StatLabel label, List<StatActualValue> identifications) {
-        return !"{sign}ATK".equals(label.alias())
-                ? label.alias()
-                : identifications.stream()
-                  .filter(identification -> "rawAttackSpeed".equals(identification.statType().getApiName()))
-                  .findFirst()
-                  .map(identification -> (identification.value() < 0 ? "-" : "+") + "ATK")
-                  .orElse("ATK");
+        if (!"{sign}ATK".equals(label.alias()))
+            return label.alias();
+        return identifications.stream()
+                .filter(identification -> "rawAttackSpeed".equals(identification.statType().getApiName()))
+                .findFirst()
+                .map(identification -> (identification.value() < 0 ? "-" : "+") + "ATK")
+                .orElse("ATK");
     }
 
     private static Identifier customModel(StatLabel label, ConsumableType type) {
@@ -344,7 +345,7 @@ public class ConsuTextFeature extends Feature {
     }
 
     private static Identifier categoryTexture(String category, String texture, ConsumableType type) {
-        String namespace = "niamod";
+        String namespace = NAMESPACE;
         String path = category.trim();
         int separator = path.indexOf(':');
         if (separator >= 0) {
@@ -449,7 +450,7 @@ public class ConsuTextFeature extends Feature {
             return null;
         }
         String category = path.substring(0, separator);
-        return "niamod".equals(model.getNamespace()) ? category : model.getNamespace() + ":" + category;
+        return NAMESPACE.equals(model.getNamespace()) ? category : model.getNamespace() + ":" + category;
     }
 
     private static String normalise(String value) {

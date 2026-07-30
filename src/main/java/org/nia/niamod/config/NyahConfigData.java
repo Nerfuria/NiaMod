@@ -180,14 +180,14 @@ public class NyahConfigData {
     }
 
     private int clamp(int value, int min, int max) {
-        return Math.max(min, Math.min(max, value));
+        return Math.clamp(value, min, max);
     }
 
     private float clamp(float value, float min, float max) {
         if (!Float.isFinite(value)) {
             return min;
         }
-        return Math.max(min, Math.min(max, value));
+        return Math.clamp(value, min, max);
     }
 
     private String normaliseRadianceWorkerUrl(String workerUrl) {

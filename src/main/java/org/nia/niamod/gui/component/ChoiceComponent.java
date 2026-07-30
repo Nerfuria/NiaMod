@@ -87,6 +87,7 @@ public class ChoiceComponent implements ConfigComponent {
         g.drawString(font, GuiStyle.styled(label), labelX, controlTextY, textColor, false);
     }
 
+    @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button != 0) {
             return false;

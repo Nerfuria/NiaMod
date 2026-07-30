@@ -66,6 +66,7 @@ public class ButtonComponent implements ConfigComponent {
         }
     }
 
+    @Override
     public boolean mouseClicked(double mx, double my, int button) {
         if (button == 0) {
             int centerY = y + height / 2;

@@ -75,11 +75,11 @@ public class SliderComponent implements ConfigComponent {
         try {
             if (isInt) {
                 int val = Integer.parseInt(text);
-                val = Math.max((int) min, Math.min((int) max, val));
+                val = Math.clamp(val, (int) min, (int) max);
                 ((ConfigSetting<Integer>) setting).set(val);
             } else {
                 float val = Float.parseFloat(text);
-                val = Math.max(min, Math.min(max, val));
+                val = Math.clamp(val, min, max);
                 ((ConfigSetting<Float>) setting).set(val);
             }
             renderPercentage = getProgress();
@@ -168,6 +168,7 @@ public class SliderComponent implements ConfigComponent {
         }
     }
 
+    @Override
     public void updateClipVisibility(int clipTop, int clipBottom) {
         if (editBox == null) return;
         int centerY = y + height / 2;
@@ -179,6 +180,7 @@ public class SliderComponent implements ConfigComponent {
         }
     }
 
+    @Override
     public void hide() {
         if (editBox != null) {
             editBox.setX(-300);
@@ -190,6 +192,7 @@ public class SliderComponent implements ConfigComponent {
         }
     }
 
+    @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0 && mouseX >= trackX - 3 && mouseX <= trackX + trackWidth + 3
                 && mouseY >= y && mouseY <= y + height) {
@@ -200,6 +203,7 @@ public class SliderComponent implements ConfigComponent {
         return false;
     }
 
+    @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
         if (dragging) {
             dragSquish = Math.min(3.0f, dragSquish + (float) Math.abs(deltaX) * 0.35f);
@@ -209,6 +213,7 @@ public class SliderComponent implements ConfigComponent {
         return false;
     }
 
+    @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if (dragging) {
             dragging = false;
@@ -220,7 +225,7 @@ public class SliderComponent implements ConfigComponent {
     private float getProgress() {
         if (max == min) return 0;
         Number value = (Number) setting.get();
-        return Math.max(0, Math.min(1, (value.floatValue() - min) / (max - min)));
+        return Math.clamp((value.floatValue() - min) / (max - min), 0, 1);
     }
 
     private String formatValue() {
@@ -235,7 +240,7 @@ public class SliderComponent implements ConfigComponent {
     @SuppressWarnings("unchecked")
     private void updateValueFromMouse(double mouseX) {
         float percent = (float) ((mouseX - trackX) / trackWidth);
-        percent = Math.max(0, Math.min(1, percent));
+        percent = Math.clamp(percent, 0, 1);
 
         if (isInt) {
             int value = Math.round(min + percent * (max - min));
