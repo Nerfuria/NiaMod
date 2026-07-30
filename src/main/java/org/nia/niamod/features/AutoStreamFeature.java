@@ -1,5 +1,6 @@
 package org.nia.niamod.features;
 
+import com.wynntils.core.components.Models;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import org.nia.niamod.config.NyahConfig;
@@ -23,6 +24,10 @@ public class AutoStreamFeature extends Feature {
     }
 
     private void onTick(Minecraft mc) {
+        if (!Models.WorldState.onWorld()) {
+            lastStreamed = System.currentTimeMillis();
+            return;
+        }
         if (isDisabled() || mc.getConnection() == null || !streamEnabled) {
             return;
         }
