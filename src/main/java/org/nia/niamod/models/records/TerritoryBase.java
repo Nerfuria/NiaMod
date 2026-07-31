@@ -18,7 +18,7 @@ public record TerritoryBase(
 
     public static TerritoryBase fromJson(JsonObject obj) {
         Map<GuildResource, Integer> resources = new EnumMap<>(GuildResource.class);
-        JsonObject resJSON = obj.getAsJsonObject("resources");
+        JsonObject resJSON = obj.getAsJsonObject("baseGeneration");
 
         for (Map.Entry<String, JsonElement> e : resJSON.entrySet()) {
             resources.put(
@@ -28,7 +28,7 @@ public record TerritoryBase(
         }
 
         List<String> connections = GSON.fromJson(
-                obj.get("connections"),
+                obj.get("links"),
                 TypeToken.getParameterized(List.class, String.class).getType()
         );
 
