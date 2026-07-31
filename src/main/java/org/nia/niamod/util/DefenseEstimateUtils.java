@@ -117,7 +117,8 @@ public class DefenseEstimateUtils {
         Map<TerritoryUpgrade, Integer> defenses = estimateDefenses(territoryName, territoryInfo);
         List<String> stats = estimateStats(defenses, territoryInfo);
         int queueTime = TerritoryUtils.getQueueTime(territoryName);
-        return new DefenseEstimate(Map.copyOf(defenses), List.copyOf(stats), queueTime);
+        var paths = TerritoryUtils.getResPaths(territoryName);
+        return new DefenseEstimate(Map.copyOf(defenses), List.copyOf(stats), queueTime, paths.a(), paths.b());
     }
 
     private static Map<TerritoryUpgrade, Integer> estimateDefenses(String territoryName, TerritoryInfo territoryInfo) {

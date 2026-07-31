@@ -5,6 +5,17 @@ import com.wynntils.models.territories.type.TerritoryUpgrade;
 import java.util.List;
 import java.util.Map;
 
-public record DefenseEstimate(Map<TerritoryUpgrade, Integer> defenses, List<String> stats, int queueTime) {
-    public static final DefenseEstimate EMPTY = new DefenseEstimate(Map.of(), List.of(), 2);
+public record DefenseEstimate(
+        Map<TerritoryUpgrade, Integer> defenses,
+        List<String> stats,
+        int queueTime,
+        List<String> forwardPath,
+        List<String> backwardPath) {
+    public static final DefenseEstimate EMPTY = new DefenseEstimate(
+            Map.of(),
+            List.of(),
+            2,
+            List.of(),
+            List.of()
+    );
 }

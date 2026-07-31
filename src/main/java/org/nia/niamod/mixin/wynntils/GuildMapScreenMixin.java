@@ -6,9 +6,12 @@ import com.wynntils.screens.maps.GuildMapScreen;
 import com.wynntils.services.map.pois.TerritoryPoi;
 import net.minecraft.client.gui.GuiGraphics;
 import org.nia.niamod.eventbus.NiaEventBus;
+import org.nia.niamod.models.events.HoveredTerritoryInfoRenderEvent;
 import org.nia.niamod.models.events.TerritoryTooltipHeightEvent;
 import org.nia.niamod.models.events.TerritoryTooltipRenderEvent;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -32,5 +35,27 @@ public class GuildMapScreenMixin {
         TerritoryTooltipHeightEvent event = new TerritoryTooltipHeightEvent(territoryPoi);
         NiaEventBus.dispatch(event);
         return centerHeight + event.getAdditionalHeight();
+    }
+
+    @Inject(
+            method = "renderHoveredTerritoryInfo",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lcom/wynntils/services/map/pois/TerritoryPoi;isFakeTerritoryInfo()Z"
+            )
+    )
+    private void onRenderHoveredTerritoryInfo(
+            GuiGraphics guiGraphics,
+            CallbackInfo ci,
+            @Local TerritoryPoi territoryPoi) {
+        AbstractMapScreenAccessor accessor = (AbstractMapScreenAccessor) this;
+
+        float mapCenterX = accessor.getMapCenterX();
+        float mapCenterZ = accessor.getMapCenterZ();
+        float centerX = accessor.getCenterX();
+        float centerZ = accessor.getCenterZ();
+        float zoomRenderScale = accessor.getZoomRenderScale();
+
+        NiaEventBus.dispatch(new HoveredTerritoryInfoRenderEvent(guiGraphics, territoryPoi, mapCenterX, mapCenterZ, centerX, centerZ, zoomRenderScale));
     }
 }

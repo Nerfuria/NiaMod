@@ -17,6 +17,7 @@ import org.nia.niamod.models.events.GuildMapUpdateEvent;
 import org.nia.niamod.models.records.TerritoryCombatStats;
 import org.nia.niamod.models.records.TerritoryInfoDepth;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 @UtilityClass
@@ -243,6 +244,100 @@ public class TerritoryUtils {
         return count;
     }
 
+    public static Pair<List<String>, List<String>> getResPaths(String territoryName) {
+        TerritoryInfo startTerr = Models.Territory.getTerritoryPoiFromAdvancement(territoryName).getTerritoryInfo();
+        String guild = startTerr.getGuildName();
+        if (guild == null)
+            return new Pair<>(List.of(), List.of());
+        Optional<String> HQName = getHQ(guild);
+        if (HQName.isEmpty())
+            return new Pair<>(List.of(), List.of());
+
+        var forward = getPath(HQName.get(), territoryName, true);
+        var backward = getPath(territoryName, HQName.get(), true);
+
+        return new Pair<>(forward, backward);
+    }
+
+    /**
+     * Calculate a path on the territory map from start territory to end territory.
+     *
+     * @param startTerritoryName Name of the start territory.
+     * @param endTerritoryName   Name of the end territory.
+     * @param cheapest           If true, estimates the cheapest path, otherwise the fastest.
+     * @return An empty list if there was no path found, otherwise a list of territory names on the path.
+     */
+    public static List<String> getPath(String startTerritoryName, String endTerritoryName, boolean cheapest) {
+        if (startTerritoryName.equals(endTerritoryName))
+            return List.of(startTerritoryName);
+
+        record Entry(String name, double cost, int order) {}    // order to preserver FIFO order
+        Queue<Entry> queue;
+        if (cheapest)
+            queue = new PriorityQueue<>(
+                    Comparator.comparingDouble(Entry::cost)
+                            .thenComparing(Entry::order)
+            );
+        else
+            queue = new ArrayDeque<>();
+        Map<String, String> parents = new HashMap<>();
+        int order = 0;
+        queue.add(new Entry(startTerritoryName, 1.0, order++));
+        parents.put(startTerritoryName, startTerritoryName);
+
+        String startGuild = Models.Territory.getTerritoryPoiFromAdvancement(startTerritoryName).getTerritoryInfo().getGuildName();
+        if (startGuild == null) startGuild = "";
+        String endGuild = Models.Territory.getTerritoryPoiFromAdvancement(endTerritoryName).getTerritoryInfo().getGuildName();
+        if (endGuild == null) endGuild = "";
+        boolean useAllies = Models.Guild.getGuildName().equals(startGuild);
+
+        boolean finished = false;
+        while (!queue.isEmpty() && !finished) {
+            Entry next = queue.poll();
+            String terrName = next.name();
+            double cost = next.cost();
+
+            List<String> conns = TerritoryBaseManager.getTerritory(terrName).connections();
+            for (String connName : conns) {
+                if (parents.containsKey(connName))
+                    continue;
+                if (connName.equals(endTerritoryName)) {
+                    finished = true;
+                    parents.put(connName, terrName);
+                    break;
+                }
+
+                double connCost = cost;
+                if (cheapest) {
+                    TerritoryInfo connInfo = Models.Territory.getTerritoryPoiFromAdvancement(connName).getTerritoryInfo();
+                    String connGuild = connInfo.getGuildName();
+                    if (startGuild.equals(connGuild) || endGuild.equals(connGuild)) {
+                        // cost stays same
+                    } else if (useAllies && Models.Guild.isAllied(connGuild)) {
+                        connCost *= 1.05;
+                    } else {
+                        connCost *= 1.7;
+                    }
+                }
+                queue.add(new Entry(connName, connCost, order++));
+                parents.put(connName, terrName);
+            }
+        }
+
+        if (!finished)
+            return List.of();
+
+        List<String> path = new ArrayList<>();
+        String prev = endTerritoryName;
+        path.add(prev);
+        while (!prev.equals(startTerritoryName)) {
+            prev = parents.get(prev);
+            path.add(prev);
+        }
+
+        return path.reversed();
+    }
+
     private static class HQDistanceCache {
         private final Map<String, Integer> cache = new HashMap<>();
 
@@ -304,7 +399,7 @@ public class TerritoryUtils {
                         cnt--;
                         if (cnt == 0)
                             return;
-                        }
+                    }
                     queue.add(new Pair<>(conn, dist + 1));
                 }
             }
