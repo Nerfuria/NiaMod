@@ -95,6 +95,7 @@ public class NyahConfig {
         applyEnabledState(FeatureManager.getViewModelTransformationFeature(), config.isViewModelFeatureEnabled());
         applyEnabledState(FeatureManager.getRadianceSyncFeature(), config.isRadianceSyncEnabled());
         applyEnabledState(FeatureManager.getAutoStreamFeature(), config.isAutoStreamFeatureEnabled());
+        applyEnabledState(FeatureManager.getTerritoryRouteFlowFeature(), config.isTerritoryRouteFlowFeatureEnabled());
     }
 
     private static void applyEnabledState(Feature feature, boolean enabled) {

@@ -10,8 +10,6 @@ import org.nia.niamod.models.events.HoveredTerritoryInfoRenderEvent;
 import org.nia.niamod.models.events.TerritoryTooltipHeightEvent;
 import org.nia.niamod.models.events.TerritoryTooltipRenderEvent;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -38,17 +36,23 @@ public class GuildMapScreenMixin {
     }
 
     @Inject(
-            method = "renderHoveredTerritoryInfo",
+            method = "doRender",
             at = @At(
                     value = "INVOKE",
-                    target = "Lcom/wynntils/services/map/pois/TerritoryPoi;isFakeTerritoryInfo()Z"
+                    target = "Lcom/wynntils/screens/maps/GuildMapScreen;renderPois(Lnet/minecraft/client/gui/GuiGraphics;II)V",
+                    shift = At.Shift.AFTER
             )
     )
-    private void onRenderHoveredTerritoryInfo(
+    private void renderHoveredTerritoryPaths(
             GuiGraphics guiGraphics,
-            CallbackInfo ci,
-            @Local TerritoryPoi territoryPoi) {
+            int mouseX,
+            int mouseY,
+            float partialTick,
+            CallbackInfo ci) {
         AbstractMapScreenAccessor accessor = (AbstractMapScreenAccessor) this;
+        if (!(accessor.getHovered() instanceof TerritoryPoi territoryPoi)) {
+            return;
+        }
 
         float mapCenterX = accessor.getMapCenterX();
         float mapCenterZ = accessor.getMapCenterZ();
@@ -56,6 +60,14 @@ public class GuildMapScreenMixin {
         float centerZ = accessor.getCenterZ();
         float zoomRenderScale = accessor.getZoomRenderScale();
 
-        NiaEventBus.dispatch(new HoveredTerritoryInfoRenderEvent(guiGraphics, territoryPoi, mapCenterX, mapCenterZ, centerX, centerZ, zoomRenderScale));
+        NiaEventBus.dispatch(new HoveredTerritoryInfoRenderEvent(
+                guiGraphics,
+                territoryPoi,
+                mapCenterX,
+                mapCenterZ,
+                centerX,
+                centerZ,
+                zoomRenderScale
+        ));
     }
 }

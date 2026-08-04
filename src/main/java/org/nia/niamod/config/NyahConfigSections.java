@@ -44,6 +44,7 @@ final class NyahConfigSections {
         return categorySections(
                 SettingCategory.WAR,
                 NyahConfigSections::resourceTickSection,
+                NyahConfigSections::territoryRouteFlowSection,
                 NyahConfigSections::territoryBoxesSection,
                 NyahConfigSections::consumableLabelsSection,
                 NyahConfigSections::towerEhpSection,
@@ -183,6 +184,28 @@ final class NyahConfigSections {
                         integer("maximum_terr_warn", "Max Territory Warning", "How many upcoming attack timers to warn you about (set 0 to disable)", 0, 10, NyahConfigData::getTerritoryWarningCount, NyahConfigData::setTerritoryWarningCount),
                         integer("max_time_warn", "Max Queue Time", "Maximum time of an attack timer to be included (min)", 1, 10, NyahConfigData::getMaxTimeTerr, NyahConfigData::setMaxTimeTerr),
                         integer("often_warn", "Warn Speed", "How many seconds between warns", 10, 120, NyahConfigData::getWarnTime, NyahConfigData::setWarnTime)
+                )
+        );
+    }
+
+    private static SettingSection territoryRouteFlowSection(SettingCategory category) {
+        return featureSection(
+                "territory_route_flow",
+                "Territory Route Flow",
+                "Shows animated resource flow on the guild map.",
+                category,
+                NyahConfigData::isTerritoryRouteFlowFeatureEnabled,
+                NyahConfigData::setTerritoryRouteFlowFeatureEnabled,
+                List.of(
+                        bool("hq_to_territory_enabled", "HQ to Territory", "Render the route flowing from the headquarters to the hovered territory.", NyahConfigData::isHqToTerritoryRouteEnabled, NyahConfigData::setHqToTerritoryRouteEnabled),
+                        bool("territory_to_hq_enabled", "Territory to HQ", "Render the route flowing from the hovered territory back to the headquarters.", NyahConfigData::isTerritoryToHqRouteEnabled, NyahConfigData::setTerritoryToHqRouteEnabled),
+                        color("hq_to_territory_color", "HQ to Territory Color", "Color of the HQ-to-territory route.", NyahConfigData::getHqToTerritoryLineColor, NyahConfigData::setHqToTerritoryLineColor),
+                        color("territory_to_hq_color", "Territory to HQ Color", "Color of the territory-to-HQ route.", NyahConfigData::getTerritoryToHqLineColor, NyahConfigData::setTerritoryToHqLineColor),
+                        floating("route_width", "Line Width", "Thickness shared by both routes.", 0.5f, 4.0f, NyahConfigData::getTerritoryRouteLineWidth, NyahConfigData::setTerritoryRouteLineWidth),
+                        floating("route_glow", "Glow", "Bloom strength shared by both routes.", 0.0f, 1.0f, NyahConfigData::getTerritoryRouteGlowStrength, NyahConfigData::setTerritoryRouteGlowStrength),
+                        floating("light_length", "Light Length", "Length of the travelling light streaks.", 1.0f, 32.0f, NyahConfigData::getTerritoryRouteLightLength, NyahConfigData::setTerritoryRouteLightLength),
+                        floating("light_spacing", "Light Spacing", "Distance between travelling light streaks.", 8.0f, 80.0f, NyahConfigData::getTerritoryRouteLightSpacing, NyahConfigData::setTerritoryRouteLightSpacing),
+                        floating("light_speed", "Light Speed", "Travel speed of the resource-flow lights.", 0.0f, 100.0f, NyahConfigData::getTerritoryRouteLightSpeed, NyahConfigData::setTerritoryRouteLightSpeed)
                 )
         );
     }

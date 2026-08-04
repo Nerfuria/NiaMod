@@ -1,6 +1,7 @@
 package org.nia.niamod.mixin.wynntils;
 
 import com.wynntils.screens.maps.AbstractMapScreen;
+import com.wynntils.services.map.pois.Poi;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
@@ -21,4 +22,7 @@ public interface AbstractMapScreenAccessor {
 
     @Accessor("zoomRenderScale")
     float getZoomRenderScale();
+
+    @Accessor("hovered")
+    Poi getHovered();
 }

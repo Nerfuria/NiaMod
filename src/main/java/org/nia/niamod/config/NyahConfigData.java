@@ -39,6 +39,17 @@ public class NyahConfigData {
     private boolean shoutFilterFeatureEnabled = false;
     private boolean viewModelFeatureEnabled = false;
     private boolean radianceSyncEnabled = false;
+    private boolean territoryRouteFlowFeatureEnabled = true;
+
+    private boolean hqToTerritoryRouteEnabled = true;
+    private int hqToTerritoryLineColor = 0x1976FF;
+    private boolean territoryToHqRouteEnabled = true;
+    private int territoryToHqLineColor = 0xFF3B3B;
+    private float territoryRouteLineWidth = 1.5f;
+    private float territoryRouteGlowStrength = 0.46f;
+    private float territoryRouteLightLength = 10.0f;
+    private float territoryRouteLightSpacing = 24.0f;
+    private float territoryRouteLightSpeed = 28.0f;
 
     private ShoutReplacement shoutFilterMode = ShoutReplacement.COLLAPSE;
 
@@ -144,6 +155,14 @@ public class NyahConfigData {
         territoryWarningCount = clamp(territoryWarningCount, 0, 10);
         maxTimeTerr = clamp(maxTimeTerr, 1, 10);
         warnTime = clamp(warnTime, 10, 120);
+
+        hqToTerritoryLineColor &= 0xFFFFFF;
+        territoryToHqLineColor &= 0xFFFFFF;
+        territoryRouteLineWidth = clamp(territoryRouteLineWidth, 0.5f, 4.0f);
+        territoryRouteGlowStrength = clamp(territoryRouteGlowStrength, 0.0f, 1.0f);
+        territoryRouteLightLength = clamp(territoryRouteLightLength, 1.0f, 32.0f);
+        territoryRouteLightSpacing = clamp(territoryRouteLightSpacing, 8.0f, 80.0f);
+        territoryRouteLightSpeed = clamp(territoryRouteLightSpeed, 0.0f, 100.0f);
 
         idScale = clamp(idScale, 0.25f, 2.5f);
         idXOffset = clamp(idXOffset, -16, 16);

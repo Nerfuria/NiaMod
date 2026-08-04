@@ -22,6 +22,17 @@ public class RenderPipelines {
             .withVertexFormat(DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS)
             .build();
 
+    public static final RenderPipeline GUI_ROUTE = RenderPipeline.builder()
+            .withLocation(Identifier.fromNamespaceAndPath(NAMESPACE, "pipeline/gui_route"))
+            .withVertexShader(Identifier.fromNamespaceAndPath(NAMESPACE, "core/gui_route"))
+            .withFragmentShader(Identifier.fromNamespaceAndPath(NAMESPACE, "core/gui_route"))
+            .withBlend(BlendFunction.TRANSLUCENT)
+            .withDepthWrite(false)
+            .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+            .withCull(false)
+            .withVertexFormat(DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS)
+            .build();
+
     public static final RenderPipeline GUI_PORTAL_OVERLAY = RenderPipeline.builder()
             .withLocation(Identifier.fromNamespaceAndPath(NAMESPACE, "pipeline/gui_portal_overlay"))
             .withVertexShader(Identifier.fromNamespaceAndPath(NAMESPACE, "core/gui_shape"))

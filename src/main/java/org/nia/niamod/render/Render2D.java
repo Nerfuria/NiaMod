@@ -17,6 +17,9 @@ import net.minecraft.client.gui.render.TextureSetup;
 import net.minecraft.client.gui.render.state.GuiRenderState;
 import org.nia.niamod.gui.render.*;
 import org.nia.niamod.mixin.GuiGraphicsAccessor;
+import org.joml.Vector2f;
+
+import java.util.List;
 
 @UtilityClass
 public class Render2D {
@@ -215,6 +218,29 @@ public class Render2D {
         if (!submitGuiShaderRect(g, RenderPipelines.GUI_ROUNDED_RECT, x, y, w, h, color, radius, 0)) {
             roundedRect(g, x, y, w, h, radius, color);
         }
+    }
+
+    public static boolean shaderRoute(GuiGraphics g, List<Vector2f> points, TerritoryRouteStyle style, float phase, float spacing) {
+        if (!(g instanceof GuiGraphicsAccessor accessor) || points.size() < 2) {
+            return false;
+        }
+
+        GuiRenderState renderState = accessor.niamod$getGuiRenderState();
+        if (renderState == null) {
+            return false;
+        }
+
+        renderState.submitGuiElement(new GuiRouteRenderState(
+                g.pose(),
+                points,
+                style,
+                phase,
+                spacing,
+                g.guiWidth(),
+                g.guiHeight(),
+                currentScissorArea(accessor)
+        ));
+        return true;
     }
 
     public static void shaderRoundedSurface(GuiGraphics g, int x, int y, int w, int h, int radius, int fillColor, int borderColor) {
