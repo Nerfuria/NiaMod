@@ -236,7 +236,7 @@ public class TerritoryUtils {
                     continue;
                 }
 
-                if (!guild.equals(connected.getGuildName())) count++;
+                if (guild.equals(connected.getGuildName())) count++;
                 queue.addLast(new TerritoryInfoDepth(connected, current.depth() + 1));
             }
         }
