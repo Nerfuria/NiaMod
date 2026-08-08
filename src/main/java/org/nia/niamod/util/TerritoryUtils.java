@@ -173,7 +173,7 @@ public class TerritoryUtils {
         double attackSpeed = 0.5 * upgradeMultiplier(upgrades, TerritoryUpgrade.ATTACK);
         double health = 300000.0 * upgradeMultiplier(upgrades, TerritoryUpgrade.HEALTH) * multiplier;
         double defence = 0.1 * upgradeMultiplier(upgrades, TerritoryUpgrade.DEFENCE);
-        double averageDamage = (minDamage + maxDamage) / 2.0;
+        double averageDamage = minDamage * 2.0;
         double averageDps = averageDamage * attackSpeed;
         double ehp = defence >= 1.0 ? Double.POSITIVE_INFINITY : health / (1.0 - defence);
 
