@@ -17,9 +17,13 @@ public class WebUtils {
             .build();
 
     public static CompletableFuture<String> queryAPIAsync(String url) {
+        return queryAPIAsyncH(url).thenApply(WebUtils::body);
+    }
+
+    public static CompletableFuture<HttpResponse<String>> queryAPIAsyncH(String url) {
         try {
             return CLIENT.sendAsync(request(url), HttpResponse.BodyHandlers.ofString())
-                    .thenApply(WebUtils::bodyOrThrow);
+                    .thenApply(WebUtils::responseOrThrow);
         } catch (Exception e) {
             return CompletableFuture.failedFuture(new RuntimeException("API request failed", e));
         }
@@ -34,10 +38,14 @@ public class WebUtils {
                 .build();
     }
 
-    private static String bodyOrThrow(HttpResponse<String> response) {
+    private static HttpResponse<String> responseOrThrow(HttpResponse<String> response) {
         if (response.statusCode() >= 200 && response.statusCode() < 300) {
-            return response.body();
+            return response;
         }
         throw new RuntimeException("HTTP error: " + response.statusCode());
+    }
+
+    private static String body(HttpResponse<String> response) {
+        return response.body();
     }
 }

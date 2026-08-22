@@ -25,7 +25,10 @@
     "InGameHudMixin",
     "PlayerListHudAccessor",
     "wynntils.GuildMapScreenMixin",
-    "wynntils.AbstractMapScreenAccessor"
+    "wynntils.AbstractMapScreenAccessor",
+    "wynntils.TerritoryInfoAccessor",
+    "wynntils.TerritoryModelMixin",
+    "wynntils.TerritoryModelAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

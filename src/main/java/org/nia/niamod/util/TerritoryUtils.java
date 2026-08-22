@@ -1,6 +1,9 @@
 package org.nia.niamod.util;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.wynntils.core.components.Models;
+import com.wynntils.core.text.StyledText;
 import com.wynntils.models.territories.TerritoryInfo;
 import com.wynntils.models.territories.type.GuildResource;
 import com.wynntils.models.territories.type.GuildResourceValues;
@@ -13,11 +16,11 @@ import org.nia.niamod.eventbus.NiaEventBus;
 import org.nia.niamod.eventbus.Subscribe;
 import org.nia.niamod.managers.FeatureManager;
 import org.nia.niamod.managers.TerritoryBaseManager;
+import org.nia.niamod.mixin.wynntils.TerritoryInfoAccessor;
 import org.nia.niamod.models.events.GuildMapUpdateEvent;
 import org.nia.niamod.models.records.TerritoryCombatStats;
 import org.nia.niamod.models.records.TerritoryInfoDepth;
 
-import javax.annotation.Nullable;
 import java.util.*;
 
 @UtilityClass
@@ -271,7 +274,8 @@ public class TerritoryUtils {
         if (startTerritoryName.equals(endTerritoryName))
             return List.of(startTerritoryName);
 
-        record Entry(String name, double cost, int order) {}    // order to preserver FIFO order
+        record Entry(String name, double cost, int order) {
+        }    // order to preserver FIFO order
         Queue<Entry> queue;
         if (cheapest)
             queue = new PriorityQueue<>(
@@ -336,6 +340,57 @@ public class TerritoryUtils {
         }
 
         return path.reversed();
+    }
+
+    public static TerritoryInfo territoryInfoFromJson(JsonObject json) {
+        JsonObject guild = json.getAsJsonObject("guild");
+
+        TerritoryInfo info = new TerritoryInfo(
+                new String[0],
+                new StyledText[0],
+                json.get("hq").getAsBoolean()
+        );
+
+        TerritoryInfoAccessor accessor = (TerritoryInfoAccessor) info;
+
+        accessor.setGuildName(guild.get("name").getAsString());
+        accessor.setGuildPrefix(guild.get("prefix").getAsString());
+
+        accessor.setTreasury(GuildResourceValues.valueOf(json.get("treasury").getAsString()));
+        accessor.setDefences(GuildResourceValues.valueOf(json.get("defences").getAsString()));
+
+        for (JsonElement element : json.getAsJsonArray("resources")) {
+            JsonObject resource = element.getAsJsonObject();
+
+            String type = resource.get("type").getAsString();
+            int generation = resource.get("generation").getAsInt();
+            int stored = resource.get("stored").getAsInt();
+            int limit = resource.get("limit").getAsInt();
+
+            GuildResource guildResource = switch (type) {
+                case "EMERALD" -> GuildResource.EMERALDS;
+                case "ORE" -> GuildResource.ORE;
+                case "WOOD" -> GuildResource.WOOD;
+                case "FISH" -> GuildResource.FISH;
+                case "CROP" -> GuildResource.CROPS;
+                default -> null;
+            };
+
+            if (guildResource == null) {
+                continue;
+            }
+
+            if (generation > 0)
+                info.getGenerators().put(guildResource, generation);
+
+            info.getStorage().put(guildResource, new CappedValue(stored, limit));
+        }
+
+        for (JsonElement element : json.getAsJsonArray("links")) {
+            info.getTradingRoutes().add(element.getAsString());
+        }
+
+        return info;
     }
 
     private static class HQDistanceCache {
