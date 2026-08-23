@@ -28,7 +28,8 @@
     "wynntils.AbstractMapScreenAccessor",
     "wynntils.TerritoryInfoAccessor",
     "wynntils.TerritoryModelMixin",
-    "wynntils.TerritoryModelAccessor"
+    "wynntils.TerritoryModelAccessor",
+    "wynntils.WynntilsModMixin"
   ],
   "injectors": {
     "defaultRequire": 1

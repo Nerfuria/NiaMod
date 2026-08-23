@@ -1,3 +1,7 @@
 {
-  "key.category.niamod.config": "Niamod Keybindings"
+  "key.category.niamod.config": "Niamod Keybindings",
+  "function.niamod.resTick.name": "Resource Tick",
+  "function.niamod.resTick.description": "Time until the next resource tick.",
+  "function.niamod.hqTimer.name": "HQ Timer",
+  "function.niamod.hqTimer.description": "Time the HQ has been held for."
 }

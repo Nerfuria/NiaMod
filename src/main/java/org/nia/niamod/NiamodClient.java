@@ -19,4 +19,8 @@ public class NiamodClient implements ClientModInitializer {
         FeatureManager.init();
         CommandManager.init();
     }
+
+    public static void beforeWynntilsInitFeatures() {
+        FunctionManager.init();
+    }
 }
