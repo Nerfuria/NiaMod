@@ -8,11 +8,14 @@ import com.wynntils.core.components.Models;
 import com.wynntils.models.territories.TerritoryInfo;
 import com.wynntils.models.territories.profile.TerritoryProfile;
 import com.wynntils.services.map.pois.TerritoryPoi;
+import lombok.Getter;
 import org.nia.niamod.NiamodClient;
 import org.nia.niamod.config.NyahConfig;
 import org.nia.niamod.eventbus.NiaEventBus;
 import org.nia.niamod.eventbus.Subscribe;
 import org.nia.niamod.mixin.wynntils.TerritoryModelAccessor;
+import org.nia.niamod.models.events.GuildMapResourcesUpdateEvent;
+import org.nia.niamod.models.events.GuildMapUpdateEvent;
 import org.nia.niamod.models.events.WynntilsTerritoryApiUpdateEvent;
 import org.nia.niamod.util.TerritoryUtils;
 import org.nia.niamod.util.WebUtils;
@@ -24,8 +27,9 @@ import java.util.Map;
 
 public class TerritoryApiFeature extends Feature {
     private static final Gson gson = new Gson();
-    private long territoryLastTick = 0;
     private int errors = 0;
+    @Getter
+    private long territoryLastTick = 0;
 
     @Subscribe
     public void UpdateTerritories(WynntilsTerritoryApiUpdateEvent event) {
@@ -45,11 +49,6 @@ public class TerritoryApiFeature extends Feature {
     }
 
     private HttpResponse<String> parseTerritoryApi(HttpResponse<String> data) {
-        this.territoryLastTick = data.headers()
-                .firstValue("territorylasttick")
-                .map(value -> OffsetDateTime.parse(value.replace(' ', 'T')).toInstant().toEpochMilli())
-                .orElseThrow(() -> new RuntimeException("Missing territorylasttick header"));
-
         JsonObject json = JsonParser.parseString(data.body()).getAsJsonObject();
 
         Map<String, TerritoryInfo> tempMap = new HashMap<>();
@@ -65,6 +64,18 @@ public class TerritoryApiFeature extends Feature {
                 territoryPoiMap.put(entry.getKey(), new TerritoryPoi(() -> Models.Territory.getTerritoryProfile(entry.getKey()), entry.getValue()));
             }
         }
+
+
+        long newTerritoryLastTick = data.headers()
+                .firstValue("territorylasttick")
+                .map(value -> OffsetDateTime.parse(value.replace(' ', 'T')).toInstant().toEpochMilli())
+                .orElseThrow(() -> new RuntimeException("Missing territorylasttick header"));
+        if (newTerritoryLastTick != this.territoryLastTick) {
+            this.territoryLastTick = newTerritoryLastTick;
+            NiaEventBus.dispatch(new GuildMapResourcesUpdateEvent());
+        }
+
+        NiaEventBus.dispatch(new GuildMapUpdateEvent());
 
         errors = 0;
         return data;

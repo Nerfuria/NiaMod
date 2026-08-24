@@ -9,6 +9,7 @@ import org.nia.niamod.eventbus.NiaEventBus;
 import org.nia.niamod.eventbus.Subscribe;
 import org.nia.niamod.models.defense.DefenseEstimate;
 import org.nia.niamod.models.defense.DefenseEstimateCacheKey;
+import org.nia.niamod.models.events.GuildMapResourcesUpdateEvent;
 import org.nia.niamod.models.events.GuildMapUpdateEvent;
 import org.nia.niamod.models.events.TerritoryTooltipHeightEvent;
 import org.nia.niamod.models.events.TerritoryTooltipRenderEvent;
@@ -99,7 +100,7 @@ public class DefenseEstimatesFeature extends Feature {
     }
 
     @Subscribe
-    public void onGuildMapUpdate(GuildMapUpdateEvent event) {
+    public void onGuildMapResourcesUpdate(GuildMapResourcesUpdateEvent event) {
         this.clearCache();
     }
 }

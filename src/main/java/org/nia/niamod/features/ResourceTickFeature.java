@@ -6,13 +6,11 @@ import com.wynntils.models.territories.type.GuildResource;
 import com.wynntils.services.map.pois.TerritoryPoi;
 import com.wynntils.utils.type.CappedValue;
 import lombok.Getter;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.Minecraft;
-import org.nia.niamod.NiamodClient;
 import org.nia.niamod.eventbus.NiaEventBus;
+import org.nia.niamod.eventbus.Subscribe;
 import org.nia.niamod.managers.FeatureManager;
 import org.nia.niamod.managers.OverlayManager;
-import org.nia.niamod.models.events.GuildMapUpdateEvent;
+import org.nia.niamod.models.events.GuildMapResourcesUpdateEvent;
 import org.nia.niamod.overlays.ResourceTickOverlay;
 import org.nia.niamod.util.MathUtils;
 import org.nia.niamod.util.TerritoryUtils;
@@ -25,47 +23,24 @@ import java.util.List;
 public class ResourceTickFeature extends Feature {
     private static final int RESOURCE_TICK_OFFSET_SECONDS = 5;
     private Integer lastMapTick = null;
-    private String lastWorld = null;
     private Instant lastResTick = null;
     @Getter
     private ResourceTickOverlay resTickOverlay;
 
-    private static String currentWorldName() {
-        if (!Models.WorldState.onWorld()) {
-            return null;
-        }
-        String currentWorldName = Models.WorldState.getCurrentWorldName();
-        return currentWorldName.isEmpty() ? null : currentWorldName;
-    }
-
     @Override
     public void init() {
-        ClientTickEvents.END_CLIENT_TICK.register(
-                client -> runSafe("onClientTick", () -> onClientTick(client)));
+        NiaEventBus.subscribe(this);
         resTickOverlay = new ResourceTickOverlay(this::getTimeUntilResTick);
         OverlayManager.registerOverlay(resTickOverlay);
     }
 
-    private void onClientTick(Minecraft client) {
-        Instant currentTime = Instant.now();
+    @Subscribe
+    public void onGuildMapResourcesUpdate(GuildMapResourcesUpdateEvent event) {
+        Instant territoryLastTick = Instant.ofEpochMilli(FeatureManager.getTerritoryApiFeature().getTerritoryLastTick());
+
         int currentMapTick = calcMapTick();
-        if (lastMapTick == null || lastMapTick == currentMapTick) {
-            lastMapTick = currentMapTick;
-            return;
-        }
-        // Since the map tick changed this means the map updated
-        NiaEventBus.dispatch(new GuildMapUpdateEvent());
         lastMapTick = currentMapTick;
-        String currentWorld = currentWorldName();
-        if (currentWorld == null || !currentWorld.equals(lastWorld)) {
-            lastWorld = currentWorld;
-            return;
-        }
-        lastResTick = currentTime.minusSeconds(currentMapTick + RESOURCE_TICK_OFFSET_SECONDS);
-        if (client.level != null) {
-            long time = client.level.getGameTime();
-            NiamodClient.LOGGER.info("Map tick changed to {} at world time {}", currentMapTick, time);
-        }
+        lastResTick = territoryLastTick.minusSeconds(currentMapTick + RESOURCE_TICK_OFFSET_SECONDS);
     }
 
     private int calcMapTick() {
@@ -73,6 +48,7 @@ public class ResourceTickFeature extends Feature {
         List<Integer> mapTicks = new ArrayList<>();
         for (TerritoryPoi poi : territoryPois) {
             TerritoryInfo territoryInfo = poi.getTerritoryInfo();
+            if (poi.getTerritoryProfile().getAcquired().isAfter(Instant.now().minusSeconds(60))) continue;
             if (territoryInfo == null) continue;
             if (territoryInfo.isHeadquarters()) continue;
             int emeraldGeneration = territoryInfo.getGeneration(GuildResource.EMERALDS);
