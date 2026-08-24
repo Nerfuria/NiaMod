@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TerritoryApiFeature extends Feature {
-    private static final Gson gson = new Gson();
     private int errors = 0;
     @Getter
     private long territoryLastTick = 0;
@@ -50,21 +49,31 @@ public class TerritoryApiFeature extends Feature {
 
     private HttpResponse<String> parseTerritoryApi(HttpResponse<String> data) {
         JsonObject json = JsonParser.parseString(data.body()).getAsJsonObject();
+        TerritoryModelAccessor territoryModelAccessor = (TerritoryModelAccessor) (Object) (Models.Territory);
 
-        Map<String, TerritoryInfo> tempMap = new HashMap<>();
+        Map<String, TerritoryInfo> tempInfoMap = new HashMap<>();
+        Map<String, TerritoryProfile> tempProfileMap = new HashMap<>();
 
-        for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
-            tempMap.put(entry.getKey(), TerritoryUtils.territoryInfoFromJson(entry.getValue().getAsJsonObject()));
+        for (Map.Entry<String, JsonElement> entry : json.getAsJsonObject().entrySet()) {
+            JsonObject territoryObject = entry.getValue().getAsJsonObject();
+            territoryObject.addProperty("name", entry.getKey());
+            Gson territoryProfileGson = territoryModelAccessor.getTerritoryProfileGson();
+            TerritoryProfile territoryProfile = territoryProfileGson.fromJson(territoryObject, TerritoryProfile.class);
+            tempProfileMap.put(entry.getKey(), territoryProfile);
+
+            TerritoryInfo territoryInfo = TerritoryUtils.territoryInfoFromJson(entry.getValue().getAsJsonObject());
+            tempInfoMap.put(entry.getKey(), territoryInfo);
         }
 
-        var territoryPoiMap = ((TerritoryModelAccessor) (Object) (Models.Territory)).getTerritoryPoiMap();
-        for (Map.Entry<String, TerritoryInfo> entry : tempMap.entrySet()) {
+        territoryModelAccessor.setTerritoryProfileMap(tempProfileMap);
+
+        var territoryPoiMap = territoryModelAccessor.getTerritoryPoiMap();
+        for (Map.Entry<String, TerritoryInfo> entry : tempInfoMap.entrySet()) {
             TerritoryProfile territoryProfile = Models.Territory.getTerritoryProfile(entry.getKey());
             if (territoryProfile != null) {
                 territoryPoiMap.put(entry.getKey(), new TerritoryPoi(() -> Models.Territory.getTerritoryProfile(entry.getKey()), entry.getValue()));
             }
         }
-
 
         long newTerritoryLastTick = data.headers()
                 .firstValue("territorylasttick")
