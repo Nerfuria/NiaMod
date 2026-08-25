@@ -32,7 +32,6 @@ public class NyahConfigData {
 
     private boolean resourceTickFeatureEnabled = false;
     private boolean chatEncryptionFeatureEnabled = true;
-    private boolean autoStreamFeatureEnabled = true;
     private boolean warTimersFeatureEnabled = true;
     private boolean warTowerEhpFeatureEnabled = false;
     private boolean consuTextFeatureEnabled = true;

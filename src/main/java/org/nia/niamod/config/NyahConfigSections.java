@@ -118,13 +118,13 @@ final class NyahConfigSections {
     }
 
     private static SettingSection autoStreamSection(SettingCategory category) {
-        return featureSection(
+        return SettingSection.standard(
                 "auto_stream",
                 "Auto Stream",
-                "Automatically stream when you changed worlds",
+                "Automatically stream when you change worlds",
                 category,
-                NyahConfigData::isAutoStreamFeatureEnabled,
-                NyahConfigData::setAutoStreamFeatureEnabled,
+                null,
+                null,
                 List.of(
                         integer("timeout", "Timeout", "Time to wait between stream boss bars before attempting to re-stream", 100, 10000, NyahConfigData::getStreamCooldown, NyahConfigData::setStreamCooldown)
                 )

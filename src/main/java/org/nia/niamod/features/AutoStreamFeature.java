@@ -8,8 +8,8 @@ import org.nia.niamod.eventbus.NiaEventBus;
 import org.nia.niamod.eventbus.Subscribe;
 import org.nia.niamod.models.events.BossBarNameEvent;
 import org.nia.niamod.models.events.CommandSentEvent;
+import org.nia.niamod.util.McUtils;
 
-@SuppressWarnings("unused")
 public class AutoStreamFeature extends Feature {
 
     private long lastSeen;
@@ -21,14 +21,44 @@ public class AutoStreamFeature extends Feature {
         NiaEventBus.subscribe(this);
         ClientTickEvents.END_CLIENT_TICK.register(client ->
                 runSafe("onTick", () -> onTick(client)));
+        this.setEnabled(false);
+    }
+
+    public void enable() {
+        var mc = Minecraft.getInstance();
+        if (!streamEnabled && mc.getConnection() != null) {
+            mc.getConnection().sendCommand("stream");
+            streamEnabled = true;
+        }
+        this.setEnabled(true);
+        McUtils.logMessageToClient("Auto stream enabled!");
+    }
+
+    public void disable() {
+        var connection = Minecraft.getInstance().getConnection();
+        if (streamEnabled && connection != null) {
+            connection.sendCommand("stream");
+            streamEnabled = false;
+        }
+        this.setEnabled(false);
+        McUtils.logMessageToClient("Auto stream disabled!");
+    }
+
+    public void toggle() {
+        if (isEnabled()) {
+            disable();
+        } else {
+            enable();
+        }
     }
 
     private void onTick(Minecraft mc) {
         if (!Models.WorldState.onWorld()) {
             lastStreamed = System.currentTimeMillis();
+            streamEnabled = false;
             return;
         }
-        if (isDisabled() || mc.getConnection() == null || !streamEnabled) {
+        if (isDisabled() || mc.getConnection() == null) {
             return;
         }
 
@@ -39,6 +69,7 @@ public class AutoStreamFeature extends Feature {
         if (isStreamCooldownOver && isCommandCooldownOver) {
             mc.getConnection().sendCommand("stream");
             lastStreamed = currentTime;
+            streamEnabled = true;
         }
     }
 
@@ -53,6 +84,9 @@ public class AutoStreamFeature extends Feature {
     private void onCommand(CommandSentEvent event) {
         if (event.command().startsWith("stream")) {
             streamEnabled = !streamEnabled;
+            if (isEnabled()) {
+                this.disable();
+            }
         }
     }
 }

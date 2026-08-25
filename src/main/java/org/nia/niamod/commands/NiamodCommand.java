@@ -20,7 +20,9 @@ public class NiamodCommand {
                 .then(literal("ignoremanager").executes(ctx -> openIgnore(ctx.getSource())))
                 .then(literal("ignore").executes(ctx -> openIgnore(ctx.getSource())))
                 .then(literal("overlays").executes(ctx -> openOverlays()))
-                .then(literal("overlaymanager").executes(ctx -> openOverlays()));
+                .then(literal("overlaymanager").executes(ctx -> openOverlays()))
+                .then(literal("as").executes(ctx -> autoStream()))
+                .then(literal("autostream").executes(ctx -> autoStream()));
     }
 
     private static int openConfig() {
@@ -41,6 +43,11 @@ public class NiamodCommand {
 
     private static int openOverlays() {
         Minecraft.getInstance().submit(() -> OverlayManager.openConfig());
+        return 1;
+    }
+
+    private static int autoStream() {
+        Minecraft.getInstance().submit(() -> FeatureManager.getAutoStreamFeature().toggle());
         return 1;
     }
 }
