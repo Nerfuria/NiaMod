@@ -21,16 +21,14 @@ Most of the functionality can be accessed through the `/niamod` or `/nm` command
 - ❌ **Support for `/gu territory` in wars**
 - ❌ **Pre-snipe consu checker**
 - ❌ **Individual DPS stats after wars**
+- ❌ **Snipe team tracking**
 ### Raids
 - ❌ **Guild raid reporter**
 - ❌ **Party member stats**
-### Guild
-- ❌ **Snipe team tracking**
 ### Other
 - **Encrypted chat**
 - **Ignore GUI**
 - **Auto stream**
-- ❌ **Emotes**
 - ❌ **Missing ability points warning**
 
 
