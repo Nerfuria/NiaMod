@@ -1,37 +1,41 @@
 # Nia Mod
 
 General warring/raiding utility mod made by and for Nerfurians. This mod is heavily inspired by other mods such as fuy.gg.
+Most of the functionality can be accessed through the `/niamod` or `/nm` command.
 
-## Planned Features
-(❌ = Not implemented, ✅ = Implemented)
+## Features
+(❌ = Not implemented yet)
 ### War
-- **Res tick timer** - function that returns the current resource tick even without any owned 
-territories ✅
-- **Radiance Tracker** - Syncs your Radiance Timer with your partner ✅
-- **Support for `/gu territory` in wars** ❌
-- **Pre-snipe consu checker** - double checks if you have the consus you need ❌
-- **Queue time info on map** ✅
-- **Territory borders in world** ✅
-- **Defense reverser** - shows estimated territory defenses based on the resources of that territory ✅
-- **Individual DPS stats after wars** ❌
-- **Consu Textures** ✅
-- **Consu Labels** ✅
-- **Tower EHP** ✅
+- **Faster guild map updates** - Resources update every minute, HQs update every 15s.
+- **Consumable textures & labels**
+- **Territory defense & stat estimates**
+- **Queue timer estimates**
+- **Resource route estimates (experimental)**
+- **Territory borders in world**
+- **Radiance tracker** - Syncs your radiance timer with your partner
+- **Tower EHP**
+- **Additional Wynntils infobox functions:**
+  - `res_tick` returns the time until the next resource tick.
+  - `hq_timer` returns the timer of your HQ.
+- ❌ **Eco menu overhaul**
+- ❌ **Support for `/gu territory` in wars**
+- ❌ **Pre-snipe consu checker**
+- ❌ **Individual DPS stats after wars**
 ### Raids
-- **Guild raid reporter** ❌
+- ❌ **Guild raid reporter**
+- ❌ **Party member stats**
 ### Guild
-- **Snipe team tracking** ❌
+- ❌ **Snipe team tracking**
 ### Other
-- **Encrypted chat** ✅
-- **Ignore GUI** (WIP)
-- **Auto stream** ✅
-- **Emotes** ❌
-- **Party member stats** - shows raid stats of party members ❌
-- **Missing ability points warning** ❌
+- **Encrypted chat**
+- **Ignore GUI**
+- **Auto stream**
+- ❌ **Emotes**
+- ❌ **Missing ability points warning**
 
 
 ## Installation
 
-Download the newest jar from the [releases](https://github.com/Nerfuria/NyahMod/releases) and put it into your mods folder.
+Download the newest jar from the [releases](https://github.com/Nerfuria/NiaMod/releases) and put it into your mods folder.
 Additionally, this mod depends on the following mods which you will also have to install:
 - [Wynntils](https://modrinth.com/mod/wynntils)
