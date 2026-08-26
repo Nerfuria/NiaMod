@@ -10,7 +10,7 @@ public final class WarFunctions {
     public static class ResTickFunction extends NiaFunction<Integer> {
         @Override
         public Integer getValue(FunctionArguments arguments) {
-            return FeatureManager.getResTickFeature().getTimeUntilResTick();
+            return FeatureManager.getResTickFeature().getSecondsUntilResTick();
         }
     }
 

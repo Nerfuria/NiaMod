@@ -86,7 +86,6 @@ public class NyahConfig {
 
     public static void applyFeatureStates() {
         NyahConfigData config = getData();
-        applyEnabledState(FeatureManager.getResTickFeature(), config.isResourceTickFeatureEnabled());
         applyEnabledState(FeatureManager.getChatEncryptionFeature(), config.isChatEncryptionFeatureEnabled());
         applyEnabledState(FeatureManager.getWarTimersFeature(), config.isWarTimersFeatureEnabled());
         applyEnabledState(FeatureManager.getWarTowerEHPFeature(), config.isWarTowerEhpFeatureEnabled());

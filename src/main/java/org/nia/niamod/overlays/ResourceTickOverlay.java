@@ -5,7 +5,6 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import org.nia.niamod.config.NyahConfig;
-import org.nia.niamod.managers.FeatureManager;
 import org.nia.niamod.models.render.TextOverlay;
 
 import java.util.function.IntSupplier;
@@ -56,15 +55,11 @@ public class ResourceTickOverlay implements TextOverlay {
 
     @Override
     public boolean isEnabled() {
-        return NyahConfig.getData().isResourceTickFeatureEnabled();
+        return NyahConfig.getData().isResourceTickOverlayEnabled();
     }
 
     @Override
     public void setEnabled(boolean enabled) {
-        NyahConfig.getData().setResourceTickFeatureEnabled(enabled);
-
-        if (FeatureManager.getResTickFeature() != null) {
-            FeatureManager.getResTickFeature().setEnabled(enabled);
-        }
+        NyahConfig.getData().setResourceTickOverlayEnabled(enabled);
     }
 }

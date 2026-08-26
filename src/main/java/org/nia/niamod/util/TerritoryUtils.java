@@ -83,7 +83,7 @@ public class TerritoryUtils {
             return -1;
         }
 
-        return FeatureManager.getResTickFeature().getMapTick();
+        return FeatureManager.getResTickFeature().getCurrentMapTick();
     }
 
     /**

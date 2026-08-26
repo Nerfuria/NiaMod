@@ -153,14 +153,15 @@ final class NyahConfigSections {
     }
 
     private static SettingSection resourceTickSection(SettingCategory category) {
-        return featureSection(
+        return SettingSection.standard(
                 "resource_tick",
                 "Resource Tick",
                 "Tracks the current guild resource tick from territory data.",
                 category,
-                NyahConfigData::isResourceTickFeatureEnabled,
-                NyahConfigData::setResourceTickFeatureEnabled,
+                null,
+                null,
                 List.of(
+                        bool("enable_overlay", "Enable Overlay", "Enable the resource tick overlay.", NyahConfigData::isResourceTickOverlayEnabled, NyahConfigData::setResourceTickOverlayEnabled),
                         button("res_overlay", "Move Overlay", "Move the resource tick overlay", () -> OverlayManager.openConfig(List.of(FeatureManager.getResTickFeature().getResTickOverlay())), "Open Editor")
                 )
         );

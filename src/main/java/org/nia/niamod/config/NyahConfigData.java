@@ -30,7 +30,7 @@ public class NyahConfigData {
     private int guiWidth = 500;
     private int guiHeight = 350;
 
-    private boolean resourceTickFeatureEnabled = false;
+    private boolean resourceTickOverlayEnabled = false;
     private boolean chatEncryptionFeatureEnabled = true;
     private boolean warTimersFeatureEnabled = true;
     private boolean warTowerEhpFeatureEnabled = false;

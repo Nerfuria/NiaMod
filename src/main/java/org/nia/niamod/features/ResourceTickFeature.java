@@ -19,10 +19,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("unused")
 public class ResourceTickFeature extends Feature {
     private static final int RESOURCE_TICK_OFFSET_SECONDS = 5;
-    private Integer lastMapTick = null;
+    @Getter
+    private int currentMapTick = -1;
     private Instant lastResTick = null;
     @Getter
     private ResourceTickOverlay resTickOverlay;
@@ -30,7 +30,7 @@ public class ResourceTickFeature extends Feature {
     @Override
     public void init() {
         NiaEventBus.subscribe(this);
-        resTickOverlay = new ResourceTickOverlay(this::getTimeUntilResTick);
+        resTickOverlay = new ResourceTickOverlay(this::getSecondsUntilResTick);
         OverlayManager.registerOverlay(resTickOverlay);
     }
 
@@ -38,50 +38,58 @@ public class ResourceTickFeature extends Feature {
     public void onGuildMapResourcesUpdate(GuildMapResourcesUpdateEvent event) {
         Instant territoryLastTick = Instant.ofEpochMilli(FeatureManager.getTerritoryApiFeature().getTerritoryLastTick());
 
-        int currentMapTick = calcMapTick();
-        lastMapTick = currentMapTick;
+        currentMapTick = calcMapTick();
         lastResTick = territoryLastTick.minusSeconds(currentMapTick + RESOURCE_TICK_OFFSET_SECONDS);
     }
 
     private int calcMapTick() {
         List<TerritoryPoi> territoryPois = Models.Territory.getTerritoryPoisFromAdvancement();
         List<Integer> mapTicks = new ArrayList<>();
+        Instant oneMinuteAgo = Instant.now().minusSeconds(60);
+
         for (TerritoryPoi poi : territoryPois) {
             TerritoryInfo territoryInfo = poi.getTerritoryInfo();
-            if (poi.getTerritoryProfile().getAcquired().isAfter(Instant.now().minusSeconds(60))) continue;
-            if (territoryInfo == null) continue;
-            if (territoryInfo.isHeadquarters()) continue;
+            if (territoryInfo == null)
+                continue;
+            if (poi.getTerritoryProfile().getAcquired().isAfter(oneMinuteAgo))
+                continue;
+            if (territoryInfo.isHeadquarters())
+                continue;
+
             int emeraldGeneration = territoryInfo.getGeneration(GuildResource.EMERALDS);
-            if (emeraldGeneration < 250000) continue;
-            boolean hasResourceProduction = false;
+            if (emeraldGeneration < 250000)
+                continue;
+
+            boolean hasResourceProductionBuff = false;
             for (GuildResource resource : TerritoryUtils.RESOURCES) {
-                if (!resource.isMaterialResource()) continue;
+                if (!resource.isMaterialResource())
+                    continue;
                 if (territoryInfo.getGeneration(resource) >= 4800) {
-                    hasResourceProduction = true;
+                    hasResourceProductionBuff = true;
                     break;
                 }
             }
-            if (hasResourceProduction) continue;
+            if (hasResourceProductionBuff)
+                continue;
+
             CappedValue emeraldStorage = territoryInfo.getStorage(GuildResource.EMERALDS);
-            if (emeraldStorage == null || emeraldStorage.max() < 6000) continue;
+            if (emeraldStorage == null || emeraldStorage.max() < 6000)
+                continue;
             int resourceStorageLevel = TerritoryUtils.getResStorageLevel(territoryInfo);
-            if (resourceStorageLevel < 1) continue;
+            if (resourceStorageLevel < 1)
+                continue;
+
             int resourceStorageCost = TerritoryUtils.resStorageLevelToCost(resourceStorageLevel);
-            float emeraldsMax = (emeraldGeneration - resourceStorageCost) / 60f;
-            mapTicks.add(Math.round((emeraldStorage.current() / emeraldsMax) * 60));
+            float emeraldsPerMin = (emeraldGeneration - resourceStorageCost) / 60f;
+            mapTicks.add(Math.round((emeraldStorage.current() / emeraldsPerMin) * 60));
         }
         return MathUtils.mode(mapTicks);
     }
 
-    public int getTimeUntilResTick() {
-        if (lastResTick == null) return -1;
-        int secondsSinceResTick =
-                (int) java.time.Duration.between(lastResTick, Instant.now()).getSeconds();
+    public int getSecondsUntilResTick() {
+        if (lastResTick == null)
+            return -1;
+        int secondsSinceResTick = (int) java.time.Duration.between(lastResTick, Instant.now()).getSeconds();
         return 60 - (secondsSinceResTick % 60);
-    }
-
-    public int getMapTick() {
-        if (lastMapTick == null) return -1;
-        return lastMapTick;
     }
 }
