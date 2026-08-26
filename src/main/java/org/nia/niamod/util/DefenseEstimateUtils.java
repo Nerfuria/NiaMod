@@ -116,8 +116,7 @@ public class DefenseEstimateUtils {
 
         Map<TerritoryUpgrade, Integer> defenses = estimateDefenses(territoryName, territoryInfo);
         List<String> stats = estimateStats(defenses, territoryInfo);
-        int queueTime = TerritoryUtils.getQueueTime(territoryName);
-        return new DefenseEstimate(Map.copyOf(defenses), List.copyOf(stats), queueTime);
+        return new DefenseEstimate(Map.copyOf(defenses), List.copyOf(stats));
     }
 
     private static Map<TerritoryUpgrade, Integer> estimateDefenses(String territoryName, TerritoryInfo territoryInfo) {
@@ -253,34 +252,34 @@ public class DefenseEstimateUtils {
         return String.format(Locale.ROOT, "%.1f%%", value * 100.0);
     }
 
-    public static List<String> tooltipLines(DefenseEstimate estimate) {
-        if (estimate == DefenseEstimate.EMPTY) {
-            return List.of();
-        }
-
+    public static List<String> tooltipLines(String territoryName, DefenseEstimate estimate) {
         List<String> lines = new ArrayList<>();
-        Map<TerritoryUpgrade, Integer> defenses = estimate.defenses();
 
-        lines.add("");
-        lines.add(ChatFormatting.GOLD + "Predicted Defences");
-        for (TerritoryUpgrade upgrade : DEFENSE_ESTIMATE_ORDER) {
-            lines.add(ChatFormatting.GRAY + upgrade.getName() + ": " + ChatFormatting.WHITE + defenses.getOrDefault(upgrade, 0));
-        }
+        if (estimate != DefenseEstimate.EMPTY) {
+            Map<TerritoryUpgrade, Integer> defenses = estimate.defenses();
 
-        for (TerritoryUpgrade upgrade : BONUS_ESTIMATE_ORDER) {
-            int level = defenses.getOrDefault(upgrade, 0);
-            if (level > 0) {
-                lines.add(ChatFormatting.GRAY + upgrade.getName() + ": " + ChatFormatting.WHITE + level);
+            lines.add("");
+            lines.add(ChatFormatting.GOLD + "Predicted Defences");
+            for (TerritoryUpgrade upgrade : DEFENSE_ESTIMATE_ORDER) {
+                lines.add(ChatFormatting.GRAY + upgrade.getName() + ": " + ChatFormatting.WHITE + defenses.getOrDefault(upgrade, 0));
             }
+
+            for (TerritoryUpgrade upgrade : BONUS_ESTIMATE_ORDER) {
+                int level = defenses.getOrDefault(upgrade, 0);
+                if (level > 0) {
+                    lines.add(ChatFormatting.GRAY + upgrade.getName() + ": " + ChatFormatting.WHITE + level);
+                }
+            }
+
+            lines.add("");
+            lines.add(ChatFormatting.GOLD + "Predicted Stats");
+            lines.addAll(estimate.stats());
         }
 
-        lines.add("");
-        lines.add(ChatFormatting.GOLD + "Predicted Stats");
-        lines.addAll(estimate.stats());
-
+        int queueTime = TerritoryUtils.getQueueTime(territoryName);
         lines.add("");
         lines.add(ChatFormatting.GOLD + "Queue Time (Fastest)");
-        lines.add(ChatFormatting.GRAY + Integer.toString(estimate.queueTime()) + " min");
+        lines.add(ChatFormatting.GRAY + Integer.toString(queueTime) + " min");
 
         return lines;
     }
