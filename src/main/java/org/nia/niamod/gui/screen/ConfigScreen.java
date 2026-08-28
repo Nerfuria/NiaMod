@@ -944,6 +944,10 @@ public class ConfigScreen extends Screen {
             return true;
         }
 
+        if (event.key() == GLFW.GLFW_KEY_RIGHT_SHIFT) { // TODO use actual keybinding?
+            onClose();
+            return true;
+        }
         if (event.key() == GLFW.GLFW_KEY_ESCAPE) {
             if (searchMode && !searchQuery.isEmpty()) {
                 searchBox.setValue("");

@@ -10,8 +10,10 @@ import org.nia.niamod.models.api.TerritoryResponse;
 import java.lang.reflect.Type;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @UtilityClass
 public class WynncraftAPI {
@@ -26,6 +28,18 @@ public class WynncraftAPI {
                 });
     }
 
+    public static CompletableFuture<Map<String, TerritoryResponse>> ownedTerritoryResponseAsync(String guildName) {
+        String guildKey = normalize(guildName);
+        if (guildKey.isEmpty()) {
+            return CompletableFuture.completedFuture(Map.of());
+        }
+
+        return territoryResponseAsync()
+                .thenApply(response -> response.entrySet().stream()
+                        .filter(entry -> isOwnedByGuild(entry.getValue(), guildKey))
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+    }
+
     public static CompletableFuture<GuildResponse> guildResponseAsync(String guildName) {
         return WebUtils.queryAPIAsync(guildUrl(guildName))
                 .thenApply(json -> gson.fromJson(json, GuildResponse.class));
@@ -35,5 +49,15 @@ public class WynncraftAPI {
         String safeGuildName = guildName == null ? "" : guildName;
         String encodedGuildName = URLEncoder.encode(safeGuildName, StandardCharsets.UTF_8).replace("+", "%20");
         return NyahConfig.getData().getApiBase() + "guild/%s?identifier=username".formatted(encodedGuildName);
+    }
+
+    private static boolean isOwnedByGuild(TerritoryResponse response, String guildKey) {
+        return response != null
+                && response.guild() != null
+                && normalize(response.guild().name()).equals(guildKey);
+    }
+
+    private static String normalize(String value) {
+        return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
     }
 }

@@ -329,6 +329,10 @@ public class IgnoreManagerScreen extends Screen {
 
     @Override
     public boolean keyPressed(@NotNull KeyEvent event) {
+        if (event.key() == GLFW.GLFW_KEY_BACKSLASH) { // TODO use actual keybinding
+            onClose();
+            return true;
+        }
         if (event.key() == GLFW.GLFW_KEY_ESCAPE) {
             if (searchBox != null && searchBox.isFocused() && !searchQuery.isEmpty()) {
                 searchBox.setValue("");

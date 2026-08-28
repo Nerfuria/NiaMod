@@ -46,6 +46,7 @@ final class NyahConfigSections {
                 NyahConfigSections::resourceTickSection,
                 NyahConfigSections::territoryRouteFlowSection,
                 NyahConfigSections::territoryBoxesSection,
+                NyahConfigSections::territoryManagerSection,
                 NyahConfigSections::consumableLabelsSection,
                 NyahConfigSections::towerEhpSection,
                 NyahConfigSections::radianceSyncSection
@@ -207,6 +208,31 @@ final class NyahConfigSections {
                         floating("light_length", "Light Length", "Length of the travelling light streaks.", 1.0f, 32.0f, NyahConfigData::getTerritoryRouteLightLength, NyahConfigData::setTerritoryRouteLightLength),
                         floating("light_spacing", "Light Spacing", "Distance between travelling light streaks.", 8.0f, 80.0f, NyahConfigData::getTerritoryRouteLightSpacing, NyahConfigData::setTerritoryRouteLightSpacing),
                         floating("light_speed", "Light Speed", "Travel speed of the resource-flow lights.", 0.0f, 100.0f, NyahConfigData::getTerritoryRouteLightSpeed, NyahConfigData::setTerritoryRouteLightSpeed)
+                )
+        );
+    }
+
+    private static SettingSection territoryManagerSection(SettingCategory category) {
+        return SettingSection.standard(
+                "territory_manager",
+                "Territory Manager",
+                "Colors used by the guild territory management map.",
+                category,
+                null,
+                null,
+                List.of(
+                        bool("eco_render_map", "Render Map", "Draw the map texture behind territory boxes.", NyahConfigData::isEcoRenderMap, NyahConfigData::setEcoRenderMap),
+                        bool("eco_render_all_territories", "Render All Territories", "Draw all territories instead of only owned and directly connected territories.", NyahConfigData::isEcoRenderAllTerritories, NyahConfigData::setEcoRenderAllTerritories),
+                        bool("eco_always_render_timers", "Always Render Timers", "Always draw fresh territory cooldown timers; otherwise only draw them while hovered.", NyahConfigData::isEcoAlwaysRenderTimers, NyahConfigData::setEcoAlwaysRenderTimers),
+                        integer("eco_connected_territory_depth", "Connected Depth", "How many non-owned connection steps to draw from owned territories.", 0, 10, NyahConfigData::getEcoConnectedTerritoryDepth, NyahConfigData::setEcoConnectedTerritoryDepth),
+                        color("eco_ore_color", "Ore Color", "Territory map color for ore.", NyahConfigData::getEcoOreColor, NyahConfigData::setEcoOreColor),
+                        color("eco_crops_color", "Crops Color", "Territory map color for crops.", NyahConfigData::getEcoCropsColor, NyahConfigData::setEcoCropsColor),
+                        color("eco_wood_color", "Wood Color", "Territory map color for wood.", NyahConfigData::getEcoWoodColor, NyahConfigData::setEcoWoodColor),
+                        color("eco_fish_color", "Fish Color", "Territory map color for fish.", NyahConfigData::getEcoFishColor, NyahConfigData::setEcoFishColor),
+                        color("eco_city_color", "City Color", "Territory map color for city labels.", NyahConfigData::getEcoCityColor, NyahConfigData::setEcoCityColor),
+                        color("eco_none_color", "No Resource Color", "Territory map color when no resource is available.", NyahConfigData::getEcoNoneColor, NyahConfigData::setEcoNoneColor),
+                        color("eco_connection_color", "Connection Color", "Territory map color for connection lines.", NyahConfigData::getEcoConnectionColor, NyahConfigData::setEcoConnectionColor),
+                        integer("eco_refresh_seconds", "Refresh Seconds", "How often the territory manager refreshes API territory ownership.", 1, 300, NyahConfigData::getEcoTerritoryRefreshSeconds, NyahConfigData::setEcoTerritoryRefreshSeconds)
                 )
         );
     }

@@ -36,6 +36,8 @@ public class FeatureManager {
     private static TerritoryRouteFlowFeature territoryRouteFlowFeature;
     @Getter
     private static TerritoryApiFeature territoryApiFeature;
+    @Getter
+    private static TerritoryManagerFeature territoryManagerFeature;
 
     public static void init() {
         resTickFeature = new ResourceTickFeature();
@@ -51,6 +53,7 @@ public class FeatureManager {
         defenseEstimatesFeature = new DefenseEstimatesFeature();
         territoryRouteFlowFeature = new TerritoryRouteFlowFeature();
         territoryApiFeature = new TerritoryApiFeature();
+        territoryManagerFeature = new TerritoryManagerFeature();
 
         for (Feature feature : List.of(
                 resTickFeature,
@@ -65,7 +68,8 @@ public class FeatureManager {
                 ignoreFeature,
                 defenseEstimatesFeature,
                 territoryRouteFlowFeature,
-                territoryApiFeature
+                territoryApiFeature,
+                territoryManagerFeature
         )) {
             feature.runSafe("init", feature::init);
         }
