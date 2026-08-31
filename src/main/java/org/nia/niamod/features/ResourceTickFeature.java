@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ResourceTickFeature extends Feature {
-    private static final int RESOURCE_TICK_OFFSET_SECONDS = 5;
+    private static final int RESOURCE_TICK_OFFSET_SECONDS = 2;
     @Getter
     private int currentMapTick = -1;
     private Instant lastResTick = null;

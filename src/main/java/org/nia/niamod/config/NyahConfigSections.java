@@ -193,7 +193,7 @@ final class NyahConfigSections {
         return featureSection(
                 "territory_route_flow",
                 "Territory Route Flow",
-                "Shows animated resource flow on the guild map.",
+                "[Experimental] Shows animated resource flow on the guild map.",
                 category,
                 NyahConfigData::isTerritoryRouteFlowFeatureEnabled,
                 NyahConfigData::setTerritoryRouteFlowFeatureEnabled,
