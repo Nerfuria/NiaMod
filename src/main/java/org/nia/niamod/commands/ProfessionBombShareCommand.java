@@ -54,7 +54,7 @@ public class ProfessionBombShareCommand {
         List<String> messages = new ArrayList<>();
         if (bombs.isEmpty())
             return messages;
-        StringBuilder current = new StringBuilder("Active Bombs: ");
+        StringBuilder current = new StringBuilder("Active Profs: ");
         String separator = "";
 
         for (BombInfo bomb : bombs) {
