@@ -274,19 +274,17 @@ public class TerritoryUtils {
         if (startTerritoryName.equals(endTerritoryName))
             return List.of(startTerritoryName);
 
-        record Entry(String name, double cost, int order) {
-        }    // order to preserver FIFO order
+        record Entry(String name, double cost) {
+        }
         Queue<Entry> queue;
         if (cheapest)
             queue = new PriorityQueue<>(
                     Comparator.comparingDouble(Entry::cost)
-                            .thenComparing(Entry::order)
             );
         else
             queue = new ArrayDeque<>();
         Map<String, String> parents = new HashMap<>();
-        int order = 0;
-        queue.add(new Entry(startTerritoryName, 1.0, order++));
+        queue.add(new Entry(startTerritoryName, 0.0));
         parents.put(startTerritoryName, startTerritoryName);
 
         String startGuild = Models.Territory.getTerritoryPoiFromAdvancement(startTerritoryName).getTerritoryInfo().getGuildName();
@@ -311,19 +309,19 @@ public class TerritoryUtils {
                     break;
                 }
 
-                double connCost = cost;
+                double connCost = cost + 1.0;
                 if (cheapest) {
                     TerritoryInfo connInfo = Models.Territory.getTerritoryPoiFromAdvancement(connName).getTerritoryInfo();
                     String connGuild = connInfo.getGuildName();
                     if (startGuild.equals(connGuild) || endGuild.equals(connGuild)) {
-                        // cost stays same
+                        // No route tax.
                     } else if (useAllies && Models.Guild.isAllied(connGuild)) {
-                        connCost *= 1.05;
+                        connCost += 0.05;
                     } else {
-                        connCost *= 1.7;
+                        connCost += 0.7;
                     }
                 }
-                queue.add(new Entry(connName, connCost, order++));
+                queue.add(new Entry(connName, connCost));
                 parents.put(connName, terrName);
             }
         }
