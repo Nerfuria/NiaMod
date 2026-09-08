@@ -274,19 +274,20 @@ public class TerritoryUtils {
         if (startTerritoryName.equals(endTerritoryName))
             return List.of(startTerritoryName);
 
-        record Entry(String name, double cost, int order) {
-        }    // order to preserver FIFO order
+        record Entry(String name, double cost, int distance) {
+        }
         Queue<Entry> queue;
         if (cheapest)
             queue = new PriorityQueue<>(
                     Comparator.comparingDouble(Entry::cost)
-                            .thenComparing(Entry::order)
+                            .thenComparingInt(Entry::distance)
             );
         else
-            queue = new ArrayDeque<>();
+            queue = new PriorityQueue<>(
+                    Comparator.comparingInt(Entry::distance)
+            );
         Map<String, String> parents = new HashMap<>();
-        int order = 0;
-        queue.add(new Entry(startTerritoryName, 1.0, order++));
+        queue.add(new Entry(startTerritoryName, 1.0, 0));
         parents.put(startTerritoryName, startTerritoryName);
 
         String startGuild = Models.Territory.getTerritoryPoiFromAdvancement(startTerritoryName).getTerritoryInfo().getGuildName();
@@ -300,6 +301,7 @@ public class TerritoryUtils {
             Entry next = queue.poll();
             String terrName = next.name();
             double cost = next.cost();
+            int distance = next.distance();
 
             List<String> conns = TerritoryBaseManager.getTerritory(terrName).connections();
             for (String connName : conns) {
@@ -316,14 +318,14 @@ public class TerritoryUtils {
                     TerritoryInfo connInfo = Models.Territory.getTerritoryPoiFromAdvancement(connName).getTerritoryInfo();
                     String connGuild = connInfo.getGuildName();
                     if (startGuild.equals(connGuild) || endGuild.equals(connGuild)) {
-                        // cost stays same
+                        // No route tax.
                     } else if (useAllies && Models.Guild.isAllied(connGuild)) {
                         connCost *= 1.05;
                     } else {
                         connCost *= 1.7;
                     }
                 }
-                queue.add(new Entry(connName, connCost, order++));
+                queue.add(new Entry(connName, connCost, distance + 1));
                 parents.put(connName, terrName);
             }
         }

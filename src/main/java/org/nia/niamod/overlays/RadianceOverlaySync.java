@@ -363,9 +363,9 @@ public class RadianceOverlaySync implements TextOverlay {
     private double getDurationForTier(int tier) {
         return switch (tier) {
             case 1 -> 9.0;
-            case 2 -> 10.5;
-            case 3 -> 11.5;
-            default -> 7.0;
+            case 2 -> 9.65;
+            case 3 -> 10.0;
+            default -> 8.0;
         };
     }
 
@@ -388,9 +388,9 @@ public class RadianceOverlaySync implements TextOverlay {
 
     private double getTierExtraDuration(int tier) {
         return switch (tier) {
-            case 1 -> 2.0;
-            case 2 -> 3.5;
-            case 3 -> 4.5;
+            case 1 -> 1.0;
+            case 2 -> 1.65;
+            case 3 -> 2.0;
             default -> 0.0;
         };
     }
