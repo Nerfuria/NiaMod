@@ -21,6 +21,10 @@ public class BombsCommand {
 
     public static LiteralArgumentBuilder<FabricClientCommandSource> command() {
         return literal("activebombs")
+                .executes(ctx -> share(
+                        ctx.getSource(),
+                        ""
+                ))
                 .then(argument("type", StringArgumentType.greedyString())
                         .suggests((ctx, builder) -> {
                             String remaining = builder.getRemaining();
@@ -48,13 +52,13 @@ public class BombsCommand {
     private static int share(FabricClientCommandSource source, String input) {
         Set<BombType> types = parseBombTypes(input);
         if (types.isEmpty()) {
-            source.sendError(Component.literal("No bombs said >:("));
+            source.sendError(Component.literal("No bomb types specified."));
             return 0;
         }
         List<BombInfo> bombs = bombs(types);
 
         if (bombs.isEmpty()) {
-            source.sendError(Component.literal("No active bombs of those type"));
+            source.sendError(Component.literal("No active bombs of this type."));
             return 0;
         }
 
@@ -65,6 +69,9 @@ public class BombsCommand {
     }
 
     private static Set<BombType> parseBombTypes(String input) {
+        if (input.isEmpty()) {
+            return EnumSet.allOf(BombType.class);
+        }
         Set<BombType> types = EnumSet.noneOf(BombType.class);
 
         for (String value : input.trim().split("\\s+")) {
@@ -77,7 +84,7 @@ public class BombsCommand {
         return types;
     }
 
-    private static List<BombInfo> bombs(Set<BombType> types) {
+    static List<BombInfo> bombs(Set<BombType> types) {
         return Models.Bomb.getBombBells().stream()
                 .filter(BombInfo::isActive)
                 .filter(bomb -> types.contains(bomb.bomb()))
@@ -88,7 +95,7 @@ public class BombsCommand {
                 .toList();
     }
 
-    private static List<String> guildMessages(List<BombInfo> bombs) {
+    static List<String> guildMessages(List<BombInfo> bombs) {
         List<String> messages = new ArrayList<>();
 
         if (bombs.isEmpty()) {
